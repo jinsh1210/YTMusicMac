@@ -8,6 +8,8 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     @Published var isLoading = true
 
     let webView: WKWebView
+    /// 로그인 흐름 추적: accounts.google.com 을 경유했는지 여부
+    private var isComingFromLogin = false
 
     override init() {
         let config = WKWebViewConfiguration()
@@ -123,7 +125,6 @@ extension MusicPlayerManager: WKNavigationDelegate {
     }
 
     func webView(_: WKWebView, didFinish _: WKNavigation!) {
-        // 로그아웃 중이거나 리다이렉션 중일 때는 로딩 상태 유지하여 "기다려 주십시오" 화면 등을 가림
         if let url = webView.url?.absoluteString, url.contains("logout") {
             isLoading = true
         } else {
@@ -132,26 +133,47 @@ extension MusicPlayerManager: WKNavigationDelegate {
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        guard let url = navigationAction.request.url,
-              navigationAction.targetFrame?.isMainFrame == true
-        else {
+        guard let url = navigationAction.request.url else {
             decisionHandler(.allow)
             return
         }
 
-        let host = url.host ?? ""
-        let path = url.path
-
-        // www.youtube.com, youtube.com, m.youtube.com 메인 페이지로 이동하려 할 때만 music.youtube.com 으로 리다이렉트
-        // 로그인 완료 후 youtube.com/ 으로 리다이렉트되는 경우를 캐치하여 YouTube Music으로 전환
-        let youtubeHosts = ["www.youtube.com", "youtube.com", "m.youtube.com"]
-        if youtubeHosts.contains(host), path == "/" || path == "" {
-            decisionHandler(.cancel)
-            // 비동기로 호출하여 기존 내비게이션 취소 후 새로운 로드가 원활하게 시작되도록 함
-            DispatchQueue.main.async {
-                webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
-            }
+        // 서브 프레임(iframe) 내비게이션은 인터셉트 없이 허용
+        if let targetFrame = navigationAction.targetFrame, !targetFrame.isMainFrame {
+            decisionHandler(.allow)
             return
+        }
+        // targetFrame == nil 은 새 창(window.open) — 아래 로직으로 계속 처리
+
+        let host = url.host ?? ""
+
+        // Google 계열 도메인 진입 시 로그인 흐름 표시
+        // accounts.youtube.com 도 포함
+        if host.hasSuffix(".google.com") || host == "google.com" || host == "accounts.youtube.com" {
+            isComingFromLogin = true
+            decisionHandler(.allow)
+            return
+        }
+
+        // YouTube Music — 로그인 흐름 초기화 후 허용
+        if host == "music.youtube.com" {
+            isComingFromLogin = false
+            decisionHandler(.allow)
+            return
+        }
+
+        // 일반 YouTube — 로그인 후 리다이렉트이거나 루트 경로이면 YouTube Music으로 전환
+        let youtubeHosts = ["www.youtube.com", "youtube.com", "m.youtube.com"]
+        if youtubeHosts.contains(host) {
+            if isComingFromLogin || url.path == "/" || url.path == "" {
+                isComingFromLogin = false
+                isLoading = true
+                decisionHandler(.cancel)
+                DispatchQueue.main.async {
+                    webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
+                }
+                return
+            }
         }
 
         decisionHandler(.allow)

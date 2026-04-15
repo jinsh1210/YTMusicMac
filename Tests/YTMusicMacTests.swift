@@ -3,6 +3,7 @@ import XCTest
 @testable import YTMusicMac
 
 final class YTMusicMacTests: XCTestCase {
+    @MainActor
     func testInitialState() {
         let manager = MusicPlayerManager()
         XCTAssertTrue(manager.isLoading)
