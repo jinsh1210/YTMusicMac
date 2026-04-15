@@ -1,5 +1,14 @@
 # Test Report
 
+## [2026-04-16]
+- **Scope**: Fix login redirection and improve loading UI (login/logout).
+- **Result**: PASS
+- **Details**:
+    - Login redirection: `DispatchQueue.main.async` ensures successful redirect to `music.youtube.com`.
+    - Loading UI: Replaced "기다려 주십시오" page with a native `ProgressView` in `ContentView`.
+    - Entitlements: Added `com.apple.audio.AudioComponentRegistrar` mach-lookup to mitigate sandbox warnings.
+    - SwiftLint: 0 violations.
+
 ## [2026-04-15]
 - **Scope**: Final verification and project integrity check.
 - **Result**: PASS
