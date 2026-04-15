@@ -1,7 +1,7 @@
 import XCTest
-@testable import MusicPop
+@testable import YTMusicMac
 
-final class MusicPopTests: XCTestCase {
+final class YTMusicMacTests: XCTestCase {
     func testInitialState() {
         let manager = MusicPlayerManager()
         XCTAssertTrue(manager.isLoading)

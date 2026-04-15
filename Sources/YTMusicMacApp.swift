@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct MusicPopApp: App {
+struct YTMusicMacApp: App {
     @StateObject private var playerManager = MusicPlayerManager()
 
     var body: some Scene {
