@@ -4,9 +4,10 @@ import WebKit
 struct MusicWebView: NSViewRepresentable {
     let webView: WKWebView
 
-    func makeNSView(context: Context) -> WKWebView {
+    func makeNSView(context _: Context) -> WKWebView {
+        webView.wantsLayer = true
         return webView
     }
 
-    func updateNSView(_ nsView: WKWebView, context: Context) {}
+    func updateNSView(_: WKWebView, context _: Context) {}
 }

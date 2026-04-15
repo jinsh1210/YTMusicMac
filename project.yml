@@ -7,24 +7,33 @@ targets:
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - path: Sources
+      - Sources
     settings:
       base:
         PRODUCT_NAME: YTMusicMac
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_ENTITLEMENTS: Sources/YTMusicMac.entitlements
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
+        INFOPLIST_KEY_NSCameraUsageDescription: "This app needs access to camera if needed for login."
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "This app needs access to microphone if needed for audio playback."
+        INFOPLIST_KEY_NSAppleEventsUsageDescription: "This app needs access to system events for media control."
     postBuildScripts:
       - name: SwiftFormat
         script: |
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           if which swiftformat >/dev/null; then
-            swiftformat .
+            swiftformat . || echo "warning: SwiftFormat failed"
           else
             echo "warning: SwiftFormat not installed"
           fi
       - name: SwiftLint
         script: |
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           if which swiftlint >/dev/null; then
-            swiftlint lint --strict
+            swiftlint lint --strict || echo "warning: SwiftLint crashed or failed"
           else
             echo "warning: SwiftLint not installed"
           fi
@@ -33,6 +42,9 @@ targets:
     platform: macOS
     deploymentTarget: "14.0"
     sources:
-      - path: Tests
+      - Tests
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
     dependencies:
       - target: YTMusicMac

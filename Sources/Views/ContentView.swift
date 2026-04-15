@@ -1,17 +1,10 @@
 import SwiftUI
+import WebKit
 
 struct ContentView: View {
-    @EnvironmentObject var playerManager: MusicPlayerManager
+    let webView: WKWebView
 
     var body: some View {
-        ZStack {
-            MusicWebView(webView: playerManager.webView)
-                .edgesIgnoringSafeArea(.all)
-
-            if playerManager.isLoading {
-                ProgressView()
-                    .progressViewStyle(.circular)
-            }
-        }
+        MusicWebView(webView: webView)
     }
 }
