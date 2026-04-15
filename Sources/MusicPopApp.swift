@@ -1,0 +1,15 @@
+import SwiftUI
+
+@main
+struct MusicPopApp: App {
+    @StateObject private var playerManager = MusicPlayerManager()
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environmentObject(playerManager)
+                .frame(minWidth: 800, minHeight: 600)
+        }
+        .windowStyle(.hiddenTitleBar)
+    }
+}

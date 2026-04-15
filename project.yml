@@ -1,0 +1,38 @@
+name: MusicPop
+options:
+  bundleIdPrefix: com.musicpop
+targets:
+  MusicPop:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Sources
+    settings:
+      base:
+        PRODUCT_NAME: MusicPop
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ENABLE_HARDENED_RUNTIME: YES
+    postBuildScripts:
+      - name: SwiftFormat
+        script: |
+          if which swiftformat >/dev/null; then
+            swiftformat .
+          else
+            echo "warning: SwiftFormat not installed"
+          fi
+      - name: SwiftLint
+        script: |
+          if which swiftlint >/dev/null; then
+            swiftlint lint --strict
+          else
+            echo "warning: SwiftLint not installed"
+          fi
+  MusicPopTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests
+    dependencies:
+      - target: MusicPop
