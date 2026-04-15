@@ -6,7 +6,7 @@ struct YTMusicMacApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView(webView: playerManager.webView)
+            ContentView(manager: playerManager)
                 .frame(minWidth: 800, minHeight: 600)
         }
     }
