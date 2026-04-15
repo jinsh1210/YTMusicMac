@@ -1,0 +1,17 @@
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+*.moved-aside
+*.xcuserstate
+*.xccheckout
+*.xcscheme
+*.xcscmblueprint
+*.xctestplan
+*.xctest
+
+# macOS
+.DS_Store
+
+# SwiftLint/Format
+.swiftlint.log
