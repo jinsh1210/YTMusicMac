@@ -8,6 +8,8 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     @Published var isLoading = true
 
     let webView: WKWebView
+    /// 로그인 흐름 추적: accounts.google.com 을 경유했는지 여부
+    private var isComingFromLogin = false
 
     override init() {
         let config = WKWebViewConfiguration()
@@ -26,8 +28,8 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     private func setupWebView() {
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        // macOS 15 + Safari 18 — YouTube Music이 지원 브라우저로 인식하며, 패스키(macOS 13+ 필요)도 동작
-        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+        // macOS 15 Safari 18 최신 UserAgent - YouTube Music 데스크톱 모드 안정성 확보
+        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
 
         let url = URL(string: "https://music.youtube.com")!
         webView.load(URLRequest(url: url))
@@ -47,7 +49,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         function observePlayer() {
             const playerBar = document.querySelector('ytmusic-player-bar');
             if (!playerBar) {
-                setTimeout(observePlayer, 500);
+                setTimeout(observePlayer, 1000); // 1초 간격으로 확인
                 return;
             }
 
@@ -118,8 +120,16 @@ private class WeakMessageHandler: NSObject, WKScriptMessageHandler {
 }
 
 extension MusicPlayerManager: WKNavigationDelegate {
+    func webView(_: WKWebView, didStartProvisionalNavigation _: WKNavigation!) {
+        isLoading = true
+    }
+
     func webView(_: WKWebView, didFinish _: WKNavigation!) {
-        isLoading = false
+        if let url = webView.url?.absoluteString, url.contains("logout") {
+            isLoading = true
+        } else {
+            isLoading = false
+        }
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -128,18 +138,44 @@ extension MusicPlayerManager: WKNavigationDelegate {
             return
         }
 
+        // 서브 프레임(iframe) 내비게이션은 인터셉트 없이 허용
+        if let targetFrame = navigationAction.targetFrame, !targetFrame.isMainFrame {
+            decisionHandler(.allow)
+            return
+        }
+        // targetFrame == nil 은 새 창(window.open) — 아래 로직으로 계속 처리
+
         let host = url.host ?? ""
 
-        // www.youtube.com 은 music.youtube.com 으로 리다이렉트
-        // (로그인 후 Google OAuth 콜백이 www.youtube.com 으로 오는 경우 포함)
-        if host == "www.youtube.com" {
-            let musicUrl = url.absoluteString.replacingOccurrences(of: "www.youtube.com", with: "music.youtube.com")
-            if let newUrl = URL(string: musicUrl) {
-                webView.load(URLRequest(url: newUrl))
+        // Google 계열 도메인 진입 시 로그인 흐름 표시
+        // accounts.youtube.com 도 포함
+        if host.hasSuffix(".google.com") || host == "google.com" || host == "accounts.youtube.com" {
+            isComingFromLogin = true
+            decisionHandler(.allow)
+            return
+        }
+
+        // YouTube Music — 로그인 흐름 초기화 후 허용
+        if host == "music.youtube.com" {
+            isComingFromLogin = false
+            decisionHandler(.allow)
+            return
+        }
+
+        // 일반 YouTube — 로그인 후 리다이렉트이거나 루트 경로이면 YouTube Music으로 전환
+        let youtubeHosts = ["www.youtube.com", "youtube.com", "m.youtube.com"]
+        if youtubeHosts.contains(host) {
+            if isComingFromLogin || url.path == "/" || url.path == "" {
+                isComingFromLogin = false
+                isLoading = true
                 decisionHandler(.cancel)
+                DispatchQueue.main.async {
+                    webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
+                }
                 return
             }
         }
+
         decisionHandler(.allow)
     }
 }

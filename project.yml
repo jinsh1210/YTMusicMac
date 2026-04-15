@@ -1,6 +1,10 @@
 name: YTMusicMac
 options:
   bundleIdPrefix: com.ytmusicmac
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
 targets:
   YTMusicMac:
     type: application
@@ -22,20 +26,33 @@ targets:
         INFOPLIST_KEY_NSCameraUsageDescription: "This app needs access to camera if needed for login."
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "This app needs access to microphone if needed for audio playback."
         INFOPLIST_KEY_NSAppleEventsUsageDescription: "This app needs access to system events for media control."
+        SWIFT_VERSION: "5.0"
     postBuildScripts:
       - name: SwiftFormat
+        inputFiles:
+          - "$(SRCROOT)/Sources"
+        outputFiles:
+          - "$(DERIVED_FILE_DIR)/swiftformat.stamp"
+        basedOnDependencyAnalysis: true
         script: |
           export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           if which swiftformat >/dev/null; then
-            swiftformat . || echo "warning: SwiftFormat failed"
+            swiftformat . --swiftversion 5.0 || echo "warning: SwiftFormat failed"
+            touch "$(DERIVED_FILE_DIR)/swiftformat.stamp"
           else
             echo "warning: SwiftFormat not installed"
           fi
       - name: SwiftLint
+        inputFiles:
+          - "$(SRCROOT)/Sources"
+        outputFiles:
+          - "$(DERIVED_FILE_DIR)/swiftlint.stamp"
+        basedOnDependencyAnalysis: true
         script: |
           export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           if which swiftlint >/dev/null; then
             swiftlint lint --strict || echo "warning: SwiftLint crashed or failed"
+            touch "$(DERIVED_FILE_DIR)/swiftlint.stamp"
           else
             echo "warning: SwiftLint not installed"
           fi
@@ -48,5 +65,104 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
     dependencies:
       - target: YTMusicMac
+��시중지' ||
+                                       document.querySelector('#play-pause-button')?.getAttribute('aria-label') === 'Pause';
+
+                    window.webkit.messageHandlers.trackChanged.postMessage({title, artist, art});
+                    window.webkit.messageHandlers.playbackChanged.postMessage(isPlaying);
+                } catch(e) {}
+            }
+
+            const observer = new MutationObserver(updateStatus);
+            observer.observe(playerBar, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-label', 'src'] });
+            updateStatus();
+        }
+        observePlayer();
+        """
+        let script = WKUserScript(source: scriptSource, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
+        webView.configuration.userContentController.addUserScript(script)
+    }
+
+    func handleMessage(_ message: WKScriptMessage) {
+        if message.name == "trackChanged", let dict = message.body as? [String: String] {
+            let newTrack = Track(title: dict["title"] ?? "", artist: dict["artist"] ?? "", albumArt: URL(string: dict["art"] ?? ""))
+            if currentTrack != newTrack { currentTrack = newTrack }
+        } else if message.name == "playbackChanged", let playing = message.body as? Bool {
+            isPlaying = playing
+        }
+    }
+
+    func togglePlay() { executeJavaScript("document.querySelector('#play-pause-button').click()") }
+    func nextTrack() { executeJavaScript("document.querySelector('.next-button').click()") }
+    func previousTrack() { executeJavaScript("document.querySelector('.previous-button').click()") }
+
+    private func executeJavaScript(_ script: String) {
+        Task { try? await webView.evaluateJavaScript(script) }
+    }
+}
+
+private class WeakMessageHandler: NSObject, WKScriptMessageHandler {
+    weak var manager: MusicPlayerManager?
+    init(_ manager: MusicPlayerManager) { self.manager = manager }
+    func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
+        Task { @MainActor [weak self] in self?.manager?.handleMessage(message) }
+    }
+}
+
+extension MusicPlayerManager: WKNavigationDelegate {
+    func webView(_: WKWebView, didFinish _: WKNavigation!) {
+        isLoading = false
+    }
+
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        guard let url = navigationAction.request.url else {
+            decisionHandler(.allow)
+            return
+        }
+
+        let host = url.host ?? ""
+        let path = url.path
+
+        // Google 로그인 도메인 감지
+        if host.contains("accounts.google.com") || host.contains("google.com") {
+            isLoggingIn = true
+            decisionHandler(.allow)
+            return
+        }
+
+        if navigationAction.targetFrame?.isMainFrame == true {
+            // 로그인 중이었고, YouTube 메인 페이지로 돌아왔다면 로그인 성공으로 간주하여 리다이렉트
+            if isLoggingIn && host == "www.youtube.com" && (path == "/" || path == "") {
+                isLoggingIn = false
+                decisionHandler(.cancel)
+                webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
+                return
+            }
+            
+            // 일반적인 YouTube 메인 페이지 접근은 YouTube Music으로 리다이렉트 (깜빡임 방지를 위해 로그인 경로 제외)
+            if host == "www.youtube.com" && (path == "/" || path == "") {
+                decisionHandler(.cancel)
+                webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
+                return
+            }
+        }
+
+        decisionHandler(.allow)
+    }
+}
+
+extension MusicPlayerManager: WKUIDelegate {
+    func webView(_ webView: WKWebView, createWebViewWith _: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures _: WKWindowFeatures) -> WKWebView? {
+        if navigationAction.targetFrame == nil { webView.load(navigationAction.request) }
+        return nil
+    }
+}
+
+struct Track: Equatable {
+    let title: String
+    let artist: String
+    let albumArt: URL?
+}
