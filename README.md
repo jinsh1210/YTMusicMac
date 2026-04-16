@@ -22,6 +22,10 @@ Native macOS app for YouTube Music.
 ### Installation
 1. Download the latest `.dmg` from the [Releases](https://github.com/jinsh1210/YTMusicMac/releases) page.
 2. Drag `YTMusicMac.app` to your `Applications` folder.
+3. **Troubleshooting**: If you see an error saying the app is "damaged", run the following command in Terminal:
+   ```bash
+   sudo xattr -rd com.apple.quarantine /Applications/YTMusicMac.app
+   ```
 
 ### Development
 ```bash
@@ -56,6 +60,10 @@ YouTube Music을 위한 네이티브 macOS 앱입니다.
 ### 설치 방법
 1. [Releases](https://github.com/jinsh1210/YTMusicMac/releases) 페이지에서 최신 `.dmg` 파일을 다운로드합니다.
 2. `YTMusicMac.app`을 `Applications` 폴더로 드래그합니다.
+3. **실행 시 주의사항**: "파일이 손상되어 열 수 없습니다"라는 메시지가 뜨는 경우, 터미널에서 아래 명령어를 실행해 주세요:
+   ```bash
+   sudo xattr -rd com.apple.quarantine /Applications/YTMusicMac.app
+   ```
 
 ### 개발 지원 방법
 ```bash
