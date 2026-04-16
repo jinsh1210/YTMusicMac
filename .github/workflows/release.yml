@@ -1,0 +1,39 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: macos-14
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build App
+        run: |
+          xcodebuild -project YTMusicMac.xcodeproj \
+                     -scheme YTMusicMac \
+                     -configuration Release \
+                     -derivedDataPath build \
+                     clean build
+
+      - name: Create DMG
+        run: |
+          APP_PATH="build/Build/Products/Release/YTMusicMac.app"
+          hdiutil create -volname "YTMusicMac" -srcfolder "$APP_PATH" -ov -format UDZO "YTMusicMac.dmg"
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: YTMusicMac.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
