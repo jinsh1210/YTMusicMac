@@ -6,6 +6,13 @@
 
 ## 🇺🇸 English
 
+### [0.1.4] - 2026-04-17
+
+#### Added
+- Enhanced login flow with dedicated popup interface to improve Google Authentication stability.
+- Automatic DMG ejection when app is launched from `/Applications` folder.
+- Professional installer experience with custom DMG layout and Applications folder shortcut.
+
 ### [0.1.2] - 2026-04-17
 
 #### Fixed
@@ -28,6 +35,13 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.1.4] - 2026-04-17
+
+#### 추가된 기능
+- Google 인증 안정성 향상을 위한 전용 팝업 인터페이스 적용.
+- `/Applications` 폴더에서 실행 시 설치용 DMG 자동 추출(Eject) 기능 추가.
+- 커스텀 DMG 레이아웃 및 응용 프로그램 폴더 바로가기를 통한 전문적인 설치 경험 제공.
 
 ### [0.1.2] - 2026-04-17
 

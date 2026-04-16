@@ -6,9 +6,20 @@
 
 ## 🇺🇸 English
 
+### [2026-04-17] - v0.1.4 Login & UX Improvements
+
+- **Scope**: Google Auth popup flow, DMG Auto-eject logic.
+- **Results**:
+    - [PASS] Login state detection and blur UI interaction
+    - [PASS] Automatic DMG unmounting from /Applications
+    - [PASS] create-dmg professional installer layout
+- **Notes**: Successfully resolved Google Auth stability concerns and improved the post-installation cleanup experience.
+
+---
+
 ### [2026-04-17] - v0.1.2 CI & Compatibility Fix
 
-- **Scope**: CI environment (macOS-15), Xcode project format compatibility.
+- **Scope**: CI environment (macos-15), Xcode project format compatibility.
 - **Results**:
     - [PASS] CI Runner upgrade to macOS-15 (Xcode 16 support)
     - [PASS] Project objectVersion reduction to 56 (Xcode 14+ compatibility)
@@ -33,9 +44,20 @@
 
 ## 🇰🇷 한국어
 
+### [2026-04-17] - v0.1.4 로그인 및 UX 개선
+
+- **범위**: Google 인증 팝업 흐름, DMG 자동 추출 로직.
+- **결과**:
+    - [PASS] 로그인 상태 감지 및 블러 UI 상호작용
+    - [PASS] /Applications 에서 실행 시 DMG 자동 언마운트
+    - [PASS] create-dmg 기반 전문 설치 레이아웃
+- **특이사항**: Google 인증 안정성 문제를 해결하고 설치 후 정리 과정을 자동화하여 사용자 경험을 개선함.
+
+---
+
 ### [2026-04-17] - v0.1.2 CI 및 호환성 수정
 
-- **범위**: CI 환경 (macOS-15), Xcode 프로젝트 형식 호환성.
+- **범위**: CI 환경 (macos-15), Xcode 프로젝트 형식 호환성.
 - **결과**:
     - [PASS] CI 러너를 macOS-15로 업그레이드 (Xcode 16 지원)
     - [PASS] 프로젝트 objectVersion을 56으로 하향 조정 (Xcode 14+ 호환)
