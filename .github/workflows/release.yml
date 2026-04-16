@@ -11,8 +11,7 @@ permissions:
 jobs:
   release:
     runs-on: macos-15
-...
-
+    steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
