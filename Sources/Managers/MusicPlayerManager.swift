@@ -6,10 +6,9 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     @Published var currentTrack: Track?
     @Published var isPlaying = false
     @Published var isLoading = true
+    @Published var isLoggingIn = false
 
     let webView: WKWebView
-    /// 로그인 흐름 추적: accounts.google.com 을 경유했는지 여부
-    private var isComingFromLogin = false
 
     override init() {
         let config = WKWebViewConfiguration()
@@ -27,6 +26,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         Task {
             await setupContentRules()
             loadInitialURL()
+            checkAndEjectDMG()
         }
     }
 
@@ -143,6 +143,19 @@ final class MusicPlayerManager: NSObject, ObservableObject {
             try? await webView.evaluateJavaScript(script)
         }
     }
+
+    /// 앱이 /Applications 에서 실행 중이면 설치용 DMG를 자동으로 추출
+    private func checkAndEjectDMG() {
+        let bundlePath = Bundle.main.bundlePath
+        // 앱이 /Applications 폴더에 있고, DMG가 여전히 마운트되어 있는지 확인
+        if bundlePath.hasPrefix("/Applications"),
+           FileManager.default.fileExists(atPath: "/Volumes/YTMusicMac") {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
+            process.arguments = ["detach", "/Volumes/YTMusicMac", "-quiet"]
+            try? process.run()
+        }
+    }
 }
 
 /// WKScriptMessageHandler 순환 참조 방지를 위한 약한 참조 프록시
@@ -166,11 +179,14 @@ extension MusicPlayerManager: WKNavigationDelegate {
     }
 
     func webView(_: WKWebView, didFinish _: WKNavigation!) {
-        if let url = webView.url?.absoluteString, url.contains("logout") {
-            isLoading = true
-        } else {
-            isLoading = false
+        if let url = webView.url?.absoluteString {
+            if url.contains("logout") {
+                isLoading = true
+            } else if url.contains("music.youtube.com") && isLoggingIn {
+                isLoggingIn = false
+            }
         }
+        isLoading = false
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
@@ -188,17 +204,15 @@ extension MusicPlayerManager: WKNavigationDelegate {
 
         let host = url.host ?? ""
 
-        // Google 계열 도메인 진입 시 로그인 흐름 표시
-        // accounts.youtube.com 도 포함
+        // Google 로그인 도메인 감지 시 팝업 상태 활성화
         if host.hasSuffix(".google.com") || host == "google.com" || host == "accounts.youtube.com" {
-            isComingFromLogin = true
+            isLoggingIn = true
             decisionHandler(.allow)
             return
         }
 
-        // YouTube Music — 로그인 흐름 초기화 후 허용
+        // YouTube Music 복귀 시
         if host == "music.youtube.com" {
-            isComingFromLogin = false
             decisionHandler(.allow)
             return
         }
@@ -206,8 +220,7 @@ extension MusicPlayerManager: WKNavigationDelegate {
         // 일반 YouTube — 로그인 후 리다이렉트이거나 루트 경로이면 YouTube Music으로 전환
         let youtubeHosts = ["www.youtube.com", "youtube.com", "m.youtube.com"]
         if youtubeHosts.contains(host) {
-            if isComingFromLogin || url.path == "/" || url.path == "" {
-                isComingFromLogin = false
+            if isLoggingIn || url.path == "/" || url.path == "" {
                 isLoading = true
                 decisionHandler(.cancel)
                 DispatchQueue.main.async {
