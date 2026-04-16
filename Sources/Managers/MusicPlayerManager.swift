@@ -26,11 +26,13 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     }
 
     deinit {
-        let ucc = webView.configuration.userContentController
-        ucc.removeScriptMessageHandler(forName: "trackChanged")
-        ucc.removeScriptMessageHandler(forName: "playbackChanged")
-        webView.navigationDelegate = nil
-        webView.uiDelegate = nil
+        MainActor.assumeIsolated {
+            let ucc = webView.configuration.userContentController
+            ucc.removeScriptMessageHandler(forName: "trackChanged")
+            ucc.removeScriptMessageHandler(forName: "playbackChanged")
+            webView.navigationDelegate = nil
+            webView.uiDelegate = nil
+        }
     }
 
     private func setupWebView() {
