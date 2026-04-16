@@ -1,17 +1,30 @@
-# Xcode
+# Build Artifacts
+build/
+DerivedData/
+
+# XcodeGen / Projects
 *.xcodeproj/
 *.xcworkspace/
-DerivedData/
-*.moved-aside
+
+# Xcode User Data
+xcuserdata/
 *.xcuserstate
 *.xccheckout
 *.xcscheme
 *.xcscmblueprint
 *.xctestplan
 *.xctest
+*.moved-aside
 
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
 
 # SwiftLint/Format
 .swiftlint.log
+.swiftformat

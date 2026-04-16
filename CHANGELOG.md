@@ -6,30 +6,24 @@
 
 ## 🇺🇸 English
 
+### [0.1.1] - 2026-04-17
+
+#### Fixed
+- Resolved CI release failure on macOS-14 runner by normalizing Xcode path.
+- Fixed code signing issues in GitHub Actions by bypassing signing for release artifact generation.
+- Updated `.gitignore` to correctly exclude build artifacts and generated project files.
+
 ### [0.1.0] - 2026-04-17
-
-#### Added
-- Initial release of YTMusicMac.
-- Native integration with media keys (Play/Pause, Next, Previous).
-- Hybrid architecture with hidden `WKWebView` for YouTube Music.
-- Optimized performance with debounced callbacks and third-party tracker blocking.
-- SwiftLint and SwiftFormat integration for code quality.
-- Secure entitlements configuration.
-- Detailed README and documentation.
-- Auto-update support via Sparkle.
-
+...
 ---
 
 ## 🇰🇷 한국어
 
-### [0.1.0] - 2026-04-17
+### [0.1.1] - 2026-04-17
 
-#### 추가된 기능
-- YTMusicMac 초기 릴리스.
-- 미디어 키(재생/일시정지, 다음, 이전) 네이티브 통합.
-- YouTube Music을 위한 숨겨진 `WKWebView` 기반 하이브리드 아키텍처.
-- 콜백 디바운싱 및 서드파티 트래커 차단을 통한 성능 최적화.
-- 코드 품질을 위한 SwiftLint 및 SwiftFormat 통합.
-- 보안 엔타이틀먼트 설정.
-- 상세 README 및 문서 작성.
-- Sparkle을 통한 자동 업데이트 지원.
+#### 수정된 기능
+- Xcode 경로 정규화를 통해 macOS-14 러너의 CI 릴리스 실패 문제 해결.
+- 릴리스 아티팩트 생성 시 서명 우회를 통해 GitHub Actions의 코드 서명 문제 수정.
+- 빌드 결과물 및 생성된 프로젝트 파일을 제외하도록 `.gitignore` 업데이트.
+
+### [0.1.0] - 2026-04-17
