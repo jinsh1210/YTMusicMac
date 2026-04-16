@@ -18,6 +18,7 @@ targets:
       - Sources
     dependencies:
       - package: Sparkle
+        product: Sparkle
     settings:
       base:
         PRODUCT_NAME: YTMusicMac
@@ -35,18 +36,21 @@ targets:
         INFOPLIST_KEY_NSMicrophoneUsageDescription: "This app needs access to microphone if needed for audio playback."
         INFOPLIST_KEY_NSAppleEventsUsageDescription: "This app needs access to system events for media control."
         SWIFT_VERSION: "5.0"
+        LD_RUNPATH_SEARCH_PATHS: $(inherited) @loader_path/../Frameworks
     postBuildScripts:
       - name: SwiftFormat
         inputFiles:
           - "$(SRCROOT)/Sources"
         outputFiles:
-          - "$(DERIVED_FILE_DIR)/swiftformat.stamp"
+          - "${DERIVED_FILE_DIR}/swiftformat.stamp"
         basedOnDependencyAnalysis: true
         script: |
           export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           if which swiftformat >/dev/null; then
             swiftformat . --swiftversion 5.0 || echo "warning: SwiftFormat failed"
-            touch "$(DERIVED_FILE_DIR)/swiftformat.stamp"
+            if [ -n "${DERIVED_FILE_DIR}" ]; then
+              touch "${DERIVED_FILE_DIR}/swiftformat.stamp"
+            fi
           else
             echo "warning: SwiftFormat not installed"
           fi
@@ -54,13 +58,15 @@ targets:
         inputFiles:
           - "$(SRCROOT)/Sources"
         outputFiles:
-          - "$(DERIVED_FILE_DIR)/swiftlint.stamp"
+          - "${DERIVED_FILE_DIR}/swiftlint.stamp"
         basedOnDependencyAnalysis: true
         script: |
           export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           if which swiftlint >/dev/null; then
             swiftlint lint --strict || echo "warning: SwiftLint crashed or failed"
-            touch "$(DERIVED_FILE_DIR)/swiftlint.stamp"
+            if [ -n "${DERIVED_FILE_DIR}" ]; then
+              touch "${DERIVED_FILE_DIR}/swiftlint.stamp"
+            fi
           else
             echo "warning: SwiftLint not installed"
           fi
