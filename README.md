@@ -1,7 +1,5 @@
 # YTMusicMac
 
-[![Language](https://img.shields.io/badge/Language-English%20%7C%20%ED%95%9C%EA%B5%AD%EC%96%B4-blue)](#-english--%ED%95%9C%EA%B5%AD%EC%96%B4)
-
 [English](#-english) | [한국어](#-한국어)
 
 ---
@@ -26,7 +24,6 @@ Native macOS app for YouTube Music.
 2. Drag `YTMusicMac.app` to your `Applications` folder.
 
 ### Development
-Follow these steps to set up the local development environment:
 ```bash
 git clone https://github.com/jinsh1210/YTMusicMac.git
 cd YTMusicMac
@@ -37,7 +34,7 @@ open YTMusicMac.xcodeproj
 - **Standards**: Adheres to the `HARNESS.md` project standards.
 
 ### License
-MIT License. See `LICENSE` for more details.
+MIT License. See `LICENSE` for details.
 
 ---
 
@@ -61,7 +58,6 @@ YouTube Music을 위한 네이티브 macOS 앱입니다.
 2. `YTMusicMac.app`을 `Applications` 폴더로 드래그합니다.
 
 ### 개발 지원 방법
-로컬 개발 환경을 설정하려면 다음 단계를 따르세요:
 ```bash
 git clone https://github.com/jinsh1210/YTMusicMac.git
 cd YTMusicMac
