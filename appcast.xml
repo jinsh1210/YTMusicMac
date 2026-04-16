@@ -6,23 +6,19 @@
         <description>Most recent changes with links to updates.</description>
         <language>en</language>
         <item>
-<<<<<<< HEAD
-            <title>Version 0.1.1</title>
+            <title>Version 0.1.4</title>
             <sparkle:releaseNotesLink>
                 https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
             </sparkle:releaseNotesLink>
-            <pubDate>Fri, 17 Apr 2026 13:00:00 +0900</pubDate>
-            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.1/YTMusicMac.dmg"
-                       sparkle:version="2"
-                       sparkle:shortVersionString="0.1.1"
+            <pubDate>Fri, 17 Apr 2026 16:00:00 +0900</pubDate>
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.4/YTMusicMac.dmg"
+                       sparkle:version="4"
+                       sparkle:shortVersionString="0.1.4"
                        length="0"
                        type="application/octet-stream" />
         </item>
         <item>
-            <title>Version 0.1.0</title>
-=======
             <title>Version 0.1.2</title>
->>>>>>> develop
             <sparkle:releaseNotesLink>
                 https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
             </sparkle:releaseNotesLink>
@@ -35,4 +31,15 @@
         </item>
         <item>
             <title>Version 0.1.0</title>
-...
+            <sparkle:releaseNotesLink>
+                https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
+            </sparkle:releaseNotesLink>
+            <pubDate>Fri, 17 Apr 2026 12:00:00 +0900</pubDate>
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.0/YTMusicMac.dmg"
+                       sparkle:version="1"
+                       sparkle:shortVersionString="0.1.0"
+                       length="0"
+                       type="application/octet-stream" />
+        </item>
+    </channel>
+</rss>
