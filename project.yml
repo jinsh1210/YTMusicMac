@@ -28,7 +28,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Sources/YTMusicMac.entitlements
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_SUFeedURL: "https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/appcast.xml"
-        INFOPLIST_KEY_SUPublicEDKey: "YOUR_PUBLIC_KEY_HERE" # Replace with real key
+        INFOPLIST_KEY_SUPublicEDKey: "HVC0+xVfJtRtTnL/9bV39P2XavqpZpueNZEjzyc85+g="
         INFOPLIST_KEY_NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
         INFOPLIST_KEY_NSCameraUsageDescription: "This app needs access to camera if needed for login."
