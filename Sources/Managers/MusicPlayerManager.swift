@@ -6,9 +6,10 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     @Published var currentTrack: Track?
     @Published var isPlaying = false
     @Published var isLoading = true
-    @Published var isLoggingIn = false
 
     let webView: WKWebView
+    /// 로그인 과정 중인지 확인하는 상태값
+    private var isAuthenticating = false
 
     override init() {
         let config = WKWebViewConfiguration()
@@ -43,7 +44,6 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     private func setupWebView() {
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        // macOS 15 Safari 18 최신 UserAgent - YouTube Music 데스크톱 모드 안정성 확보
         webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
     }
 
@@ -52,23 +52,18 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     }
 
     private func setupMessageHandlers() {
-        // WeakMessageHandler 프록시를 사용해 순환 참조(retain cycle) 방지
         let handler = WeakMessageHandler(self)
         webView.configuration.userContentController.add(handler, name: "trackChanged")
         webView.configuration.userContentController.add(handler, name: "playbackChanged")
 
-        // setInterval 대신 MutationObserver를 사용해 플레이어 상태 변화를 이벤트 기반으로 감지
         let scriptSource = """
-        // music.youtube.com 에서만 실행 — 로그인 페이지 등 다른 도메인에서 DOM 감시로 인한 간섭 방지
         if (window.location.hostname !== 'music.youtube.com') return;
-
         function observePlayer() {
             const playerBar = document.querySelector('ytmusic-player-bar');
             if (!playerBar) {
-                setTimeout(observePlayer, 1000); // 1초 간격으로 확인
+                setTimeout(observePlayer, 1000);
                 return;
             }
-
             function updateStatus() {
                 try {
                     const title = document.querySelector('.title.style-scope.ytmusic-player-bar')?.innerText || "";
@@ -76,12 +71,10 @@ final class MusicPlayerManager: NSObject, ObservableObject {
                     const art = document.querySelector('#layout > ytmusic-player-bar > div.middle-controls.style-scope.ytmusic-player-bar > img')?.src || "";
                     const isPlaying = document.querySelector('#play-pause-button')?.getAttribute('aria-label') === '일시중지' ||
                                        document.querySelector('#play-pause-button')?.getAttribute('aria-label') === 'Pause';
-
                     window.webkit.messageHandlers.trackChanged.postMessage({title, artist, art});
                     window.webkit.messageHandlers.playbackChanged.postMessage(isPlaying);
                 } catch(e) {}
             }
-
             let _t;
             const observer = new MutationObserver(() => { clearTimeout(_t); _t = setTimeout(updateStatus, 100); });
             observer.observe(playerBar, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-label', 'src'] });
@@ -104,7 +97,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
             {"trigger":{"url-filter":".*googleadservices\\.com"},"action":{"type":"block"}}
         ]
         """#
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+        await withCheckedContinuation { continuation in
             WKContentRuleListStore.default().compileContentRuleList(
                 forIdentifier: "YTMusicBlock",
                 encodedContentRuleList: rules
@@ -139,17 +132,12 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     }
 
     private func executeJavaScript(_ script: String) {
-        Task {
-            try? await webView.evaluateJavaScript(script)
-        }
+        Task { try? await webView.evaluateJavaScript(script) }
     }
 
-    /// 앱이 /Applications 에서 실행 중이면 설치용 DMG를 자동으로 추출
     private func checkAndEjectDMG() {
         let bundlePath = Bundle.main.bundlePath
-        // 앱이 /Applications 폴더에 있고, DMG가 여전히 마운트되어 있는지 확인
-        if bundlePath.hasPrefix("/Applications"),
-           FileManager.default.fileExists(atPath: "/Volumes/YTMusicMac") {
+        if bundlePath.hasPrefix("/Applications"), FileManager.default.fileExists(atPath: "/Volumes/YTMusicMac") {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/hdiutil")
             process.arguments = ["detach", "/Volumes/YTMusicMac", "-quiet"]
@@ -158,18 +146,14 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     }
 }
 
-/// WKScriptMessageHandler 순환 참조 방지를 위한 약한 참조 프록시
 private class WeakMessageHandler: NSObject, WKScriptMessageHandler {
     weak var manager: MusicPlayerManager?
-
     init(_ manager: MusicPlayerManager) {
         self.manager = manager
     }
 
     func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
-        Task { @MainActor [weak self] in
-            self?.manager?.handleMessage(message)
-        }
+        Task { @MainActor [weak self] in self?.manager?.handleMessage(message) }
     }
 }
 
@@ -179,13 +163,6 @@ extension MusicPlayerManager: WKNavigationDelegate {
     }
 
     func webView(_: WKWebView, didFinish _: WKNavigation!) {
-        if let url = webView.url?.absoluteString {
-            if url.contains("logout") {
-                isLoading = true
-            } else if url.contains("music.youtube.com") && isLoggingIn {
-                isLoggingIn = false
-            }
-        }
         isLoading = false
     }
 
@@ -195,37 +172,30 @@ extension MusicPlayerManager: WKNavigationDelegate {
             return
         }
 
-        // 서브 프레임(iframe) 내비게이션은 인터셉트 없이 허용
-        if let targetFrame = navigationAction.targetFrame, !targetFrame.isMainFrame {
-            decisionHandler(.allow)
-            return
-        }
-        // targetFrame == nil 은 새 창(window.open) — 아래 로직으로 계속 처리
-
         let host = url.host ?? ""
 
-        // Google 로그인 도메인 감지 시 팝업 상태 활성화
+        // Google 로그인 도메인 진입 시 인증 상태 활성화
         if host.hasSuffix(".google.com") || host == "google.com" || host == "accounts.youtube.com" {
-            isLoggingIn = true
+            isAuthenticating = true
             decisionHandler(.allow)
             return
         }
 
-        // YouTube Music 복귀 시
+        // YouTube Music 진입 시 인증 상태 해제
         if host == "music.youtube.com" {
+            isAuthenticating = false
             decisionHandler(.allow)
             return
         }
 
-        // 일반 YouTube — 로그인 후 리다이렉트이거나 루트 경로이면 YouTube Music으로 전환
+        // 일반 YouTube 도메인 처리: 로그인 직후 리다이렉트이거나 루트 경로이면 뮤직으로 전환
         let youtubeHosts = ["www.youtube.com", "youtube.com", "m.youtube.com"]
         if youtubeHosts.contains(host) {
-            if isLoggingIn || url.path == "/" || url.path == "" {
+            if isAuthenticating || url.path == "/" || url.path == "" {
+                isAuthenticating = false
                 isLoading = true
                 decisionHandler(.cancel)
-                DispatchQueue.main.async {
-                    webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
-                }
+                webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
                 return
             }
         }
