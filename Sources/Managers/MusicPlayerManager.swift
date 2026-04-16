@@ -25,6 +25,14 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         setupMessageHandlers()
     }
 
+    deinit {
+        let ucc = webView.configuration.userContentController
+        ucc.removeScriptMessageHandler(forName: "trackChanged")
+        ucc.removeScriptMessageHandler(forName: "playbackChanged")
+        webView.navigationDelegate = nil
+        webView.uiDelegate = nil
+    }
+
     private func setupWebView() {
         webView.navigationDelegate = self
         webView.uiDelegate = self
@@ -68,6 +76,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
 
             const observer = new MutationObserver(updateStatus);
             observer.observe(playerBar, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-label', 'src'] });
+            window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
             updateStatus();
         }
         observePlayer();
