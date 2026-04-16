@@ -2,6 +2,7 @@ name: YTMusicMac
 options:
   bundleIdPrefix: com.ytmusicmac
   createIntermediateGroups: true
+  xcodeVersion: "15.0"
 packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
