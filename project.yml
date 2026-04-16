@@ -2,6 +2,10 @@ name: YTMusicMac
 options:
   bundleIdPrefix: com.ytmusicmac
   createIntermediateGroups: true
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.4
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -12,15 +16,19 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - Sources
+    dependencies:
+      - package: Sparkle
     settings:
       base:
         PRODUCT_NAME: YTMusicMac
-        MARKETING_VERSION: 0.1.1
-        CURRENT_PROJECT_VERSION: 2
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_ENTITLEMENTS: Sources/YTMusicMac.entitlements
         GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_SUFeedURL: "https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/appcast.xml"
+        INFOPLIST_KEY_SUPublicEDKey: "YOUR_PUBLIC_KEY_HERE" # Replace with real key
         INFOPLIST_KEY_NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
         INFOPLIST_KEY_NSCameraUsageDescription: "This app needs access to camera if needed for login."
@@ -68,101 +76,3 @@ targets:
         SWIFT_VERSION: "5.0"
     dependencies:
       - target: YTMusicMac
-��시중지' ||
-                                       document.querySelector('#play-pause-button')?.getAttribute('aria-label') === 'Pause';
-
-                    window.webkit.messageHandlers.trackChanged.postMessage({title, artist, art});
-                    window.webkit.messageHandlers.playbackChanged.postMessage(isPlaying);
-                } catch(e) {}
-            }
-
-            const observer = new MutationObserver(updateStatus);
-            observer.observe(playerBar, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-label', 'src'] });
-            updateStatus();
-        }
-        observePlayer();
-        """
-        let script = WKUserScript(source: scriptSource, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-        webView.configuration.userContentController.addUserScript(script)
-    }
-
-    func handleMessage(_ message: WKScriptMessage) {
-        if message.name == "trackChanged", let dict = message.body as? [String: String] {
-            let newTrack = Track(title: dict["title"] ?? "", artist: dict["artist"] ?? "", albumArt: URL(string: dict["art"] ?? ""))
-            if currentTrack != newTrack { currentTrack = newTrack }
-        } else if message.name == "playbackChanged", let playing = message.body as? Bool {
-            isPlaying = playing
-        }
-    }
-
-    func togglePlay() { executeJavaScript("document.querySelector('#play-pause-button').click()") }
-    func nextTrack() { executeJavaScript("document.querySelector('.next-button').click()") }
-    func previousTrack() { executeJavaScript("document.querySelector('.previous-button').click()") }
-
-    private func executeJavaScript(_ script: String) {
-        Task { try? await webView.evaluateJavaScript(script) }
-    }
-}
-
-private class WeakMessageHandler: NSObject, WKScriptMessageHandler {
-    weak var manager: MusicPlayerManager?
-    init(_ manager: MusicPlayerManager) { self.manager = manager }
-    func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
-        Task { @MainActor [weak self] in self?.manager?.handleMessage(message) }
-    }
-}
-
-extension MusicPlayerManager: WKNavigationDelegate {
-    func webView(_: WKWebView, didFinish _: WKNavigation!) {
-        isLoading = false
-    }
-
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
-        guard let url = navigationAction.request.url else {
-            decisionHandler(.allow)
-            return
-        }
-
-        let host = url.host ?? ""
-        let path = url.path
-
-        // Google 로그인 도메인 감지
-        if host.contains("accounts.google.com") || host.contains("google.com") {
-            isLoggingIn = true
-            decisionHandler(.allow)
-            return
-        }
-
-        if navigationAction.targetFrame?.isMainFrame == true {
-            // 로그인 중이었고, YouTube 메인 페이지로 돌아왔다면 로그인 성공으로 간주하여 리다이렉트
-            if isLoggingIn && host == "www.youtube.com" && (path == "/" || path == "") {
-                isLoggingIn = false
-                decisionHandler(.cancel)
-                webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
-                return
-            }
-            
-            // 일반적인 YouTube 메인 페이지 접근은 YouTube Music으로 리다이렉트 (깜빡임 방지를 위해 로그인 경로 제외)
-            if host == "www.youtube.com" && (path == "/" || path == "") {
-                decisionHandler(.cancel)
-                webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
-                return
-            }
-        }
-
-        decisionHandler(.allow)
-    }
-}
-
-extension MusicPlayerManager: WKUIDelegate {
-    func webView(_ webView: WKWebView, createWebViewWith _: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures _: WKWindowFeatures) -> WKWebView? {
-        if navigationAction.targetFrame == nil { webView.load(navigationAction.request) }
-        return nil
-    }
-}
-
-struct Track: Equatable {
-    let title: String
-    let artist: String
-    let albumArt: URL?
-}
