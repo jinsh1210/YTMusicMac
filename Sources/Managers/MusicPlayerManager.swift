@@ -17,12 +17,17 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         config.userContentController = controller
         config.websiteDataStore = .default()
         config.allowsAirPlayForMediaPlayback = true
+        config.upgradeKnownHostsToHTTPS = true
 
         webView = WKWebView(frame: .zero, configuration: config)
         super.init()
 
         setupWebView()
         setupMessageHandlers()
+        Task {
+            await setupContentRules()
+            loadInitialURL()
+        }
     }
 
     deinit {
@@ -40,9 +45,10 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         webView.uiDelegate = self
         // macOS 15 Safari 18 최신 UserAgent - YouTube Music 데스크톱 모드 안정성 확보
         webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+    }
 
-        let url = URL(string: "https://music.youtube.com")!
-        webView.load(URLRequest(url: url))
+    private func loadInitialURL() {
+        webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
     }
 
     private func setupMessageHandlers() {
@@ -76,15 +82,39 @@ final class MusicPlayerManager: NSObject, ObservableObject {
                 } catch(e) {}
             }
 
-            const observer = new MutationObserver(updateStatus);
+            let _t;
+            const observer = new MutationObserver(() => { clearTimeout(_t); _t = setTimeout(updateStatus, 100); });
             observer.observe(playerBar, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-label', 'src'] });
-            window.addEventListener('pagehide', () => observer.disconnect(), { once: true });
+            window.addEventListener('pagehide', () => { observer.disconnect(); clearTimeout(_t); }, { once: true });
             updateStatus();
         }
         observePlayer();
         """
         let script = WKUserScript(source: scriptSource, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
         webView.configuration.userContentController.addUserScript(script)
+    }
+
+    private func setupContentRules() async {
+        let rules = #"""
+        [
+            {"trigger":{"url-filter":".*\\.doubleclick\\.net"},"action":{"type":"block"}},
+            {"trigger":{"url-filter":".*googlesyndication\\.com"},"action":{"type":"block"}},
+            {"trigger":{"url-filter":".*google-analytics\\.com"},"action":{"type":"block"}},
+            {"trigger":{"url-filter":".*googletagmanager\\.com"},"action":{"type":"block"}},
+            {"trigger":{"url-filter":".*googleadservices\\.com"},"action":{"type":"block"}}
+        ]
+        """#
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            WKContentRuleListStore.default().compileContentRuleList(
+                forIdentifier: "YTMusicBlock",
+                encodedContentRuleList: rules
+            ) { [weak self] ruleList, _ in
+                if let self, let ruleList {
+                    self.webView.configuration.userContentController.add(ruleList)
+                }
+                continuation.resume()
+            }
+        }
     }
 
     func handleMessage(_ message: WKScriptMessage) {
