@@ -1,15 +1,21 @@
-import SwiftUI
 import Sparkle
+import SwiftUI
 
 @main
 struct YTMusicMacApp: App {
     @StateObject private var playerManager = MusicPlayerManager()
-    private let updaterController: SPUUpdaterController
+    private let updater: SPUUpdater
 
     init() {
         let manager = MusicPlayerManager()
         _playerManager = StateObject(wrappedValue: manager)
-        updaterController = SPUUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
+
+        let hostBundle = Bundle.main
+        let applicationBundle = hostBundle
+        let userDriver = SPUStandardUserDriver(hostBundle: hostBundle, delegate: nil)
+        updater = SPUUpdater(hostBundle: hostBundle, applicationBundle: applicationBundle, userDriver: userDriver, delegate: nil)
+
+        try? updater.start()
     }
 
     var body: some Scene {
@@ -20,7 +26,7 @@ struct YTMusicMacApp: App {
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Check for Updates...") {
-                    updaterController.updater.checkForUpdates()
+                    updater.checkForUpdates()
                 }
             }
         }
