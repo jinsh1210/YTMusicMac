@@ -6,6 +6,17 @@
 
 ## 🇺🇸 English
 
+### [2026-04-17] - v0.1.2 CI & Compatibility Fix
+
+- **Scope**: CI environment (macOS-15), Xcode project format compatibility.
+- **Results**:
+    - [PASS] CI Runner upgrade to macOS-15 (Xcode 16 support)
+    - [PASS] Project objectVersion reduction to 56 (Xcode 14+ compatibility)
+    - [PASS] Remote tag cleanup (v0.1.0, v0.1.1)
+- **Notes**: Resolved the "future Xcode project file format (77)" error by lowering objectVersion and upgrading the CI runner.
+
+---
+
 ### [2026-04-17] - v0.1.0 Initial Release
 
 - **Scope**: Core playback, Media key integration, Google Login, WebView security, Auto-update.
@@ -21,6 +32,17 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [2026-04-17] - v0.1.2 CI 및 호환성 수정
+
+- **범위**: CI 환경 (macOS-15), Xcode 프로젝트 형식 호환성.
+- **결과**:
+    - [PASS] CI 러너를 macOS-15로 업그레이드 (Xcode 16 지원)
+    - [PASS] 프로젝트 objectVersion을 56으로 하향 조정 (Xcode 14+ 호환)
+    - [PASS] 원격 태그 정리 (v0.1.0, v0.1.1)
+- **특이사항**: objectVersion 하향 조정 및 CI 러너 업그레이드를 통해 "future Xcode project file format (77)" 오류를 해결함.
+
+---
 
 ### [2026-04-17] - v0.1.0 초기 릴리스
 
