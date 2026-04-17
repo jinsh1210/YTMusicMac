@@ -78,7 +78,8 @@ jobs:
           chmod +x sparkle_bin/bin/sign_update
 
           # Sign DMG — output: sparkle:edSignature="..." length="..."
-          SIGN_INFO=$(./sparkle_bin/bin/sign_update YTMusicMac.dmg -s "$SPARKLE_PRIVATE_KEY")
+          # -s 옵션은 deprecated, private key를 stdin으로 전달
+          SIGN_INFO=$(echo "$SPARKLE_PRIVATE_KEY" | ./sparkle_bin/bin/sign_update YTMusicMac.dmg)
           ED_SIG=$(echo "$SIGN_INFO" | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
           FILE_SIZE=$(echo "$SIGN_INFO" | sed 's/.*length="\([^"]*\)".*/\1/')
 
