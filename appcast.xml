@@ -6,14 +6,14 @@
         <description>Most recent changes with links to updates.</description>
         <language>en</language>
         <item>
-            <title>Version 0.1.12</title>
+            <title>Version 0.1.13</title>
             <sparkle:releaseNotesLink>
                 https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
             </sparkle:releaseNotesLink>
             <pubDate>Fri, 17 Apr 2026 23:59:59 +0000</pubDate>
-            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.12/YTMusicMac.dmg"
-                       sparkle:version="12"
-                       sparkle:shortVersionString="0.1.12"
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.13/YTMusicMac.dmg"
+                       sparkle:version="13"
+                       sparkle:shortVersionString="0.1.13"
                        length="0"
                        type="application/octet-stream" />
         </item>
