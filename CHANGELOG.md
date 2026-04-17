@@ -6,21 +6,21 @@
 
 ## 🇺🇸 English
 
-### [0.1.13] - 2026-04-17
+### [0.1.14] - 2026-04-17
 
 #### Fixed
-- Improved Sparkle signing process in Release workflow by registering the private key in the macOS keychain.
+- Enhanced Release workflow with explicit error handling and logging for Sparkle binary discovery.
 
-### [0.1.12] - 2026-04-17
+### [0.1.13] - 2026-04-17
 ...
 ---
 
 ## 🇰🇷 한국어
 
-### [0.1.13] - 2026-04-17
+### [0.1.14] - 2026-04-17
 
 #### 수정된 기능
-- 개인키를 macOS 키체인에 등록하여 릴리스 워크플로우의 Sparkle 서명 프로세스를 개선함.
+- Sparkle 바이너리 탐색 과정에 명시적인 에러 처리 및 로깅을 추가하여 릴리스 워크플로우의 안정성을 강화함.
 
-### [0.1.12] - 2026-04-17
+### [0.1.13] - 2026-04-17
 ...

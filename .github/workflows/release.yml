@@ -74,8 +74,14 @@ jobs:
           curl -L "https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-2.9.1.tar.xz" \
             -o sparkle.tar.xz
           mkdir sparkle_bin
-          tar xf sparkle.tar.xz -C sparkle_bin
+          tar xf sparkle.tar.xz -C sparkle_bin || true
           SIGN_UPDATE=$(find sparkle_bin -name sign_update -type f | head -1)
+          if [ -z "$SIGN_UPDATE" ]; then
+            echo "Error: sign_update not found. Archive contents:"
+            ls sparkle_bin/
+            exit 1
+          fi
+          echo "sign_update: $SIGN_UPDATE"
           chmod +x "$SIGN_UPDATE"
 
           # macOS 키체인에 private key 등록 — sign_update가 키체인에서 읽음
