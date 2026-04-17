@@ -34,10 +34,10 @@ final class YTMusicMacTests: XCTestCase {
     @MainActor
     func testUserAgentIsDesktopSafari() {
         let manager = MusicPlayerManager()
-        let ua = manager.webView.customUserAgent ?? ""
-        XCTAssertTrue(ua.contains("Macintosh"), "UA must identify as Mac desktop")
-        XCTAssertFalse(ua.contains("Mobile"), "UA must not contain Mobile identifier")
-        XCTAssertFalse(ua.contains("iPhone") || ua.contains("iPad"), "UA must not identify as iOS device")
+        let userAgent = manager.webView.customUserAgent ?? ""
+        XCTAssertTrue(userAgent.contains("Macintosh"), "UA must identify as Mac desktop")
+        XCTAssertFalse(userAgent.contains("Mobile"), "UA must not contain Mobile identifier")
+        XCTAssertFalse(userAgent.contains("iPhone") || userAgent.contains("iPad"), "UA must not identify as iOS device")
     }
 
     /// HTTPS 업그레이드 보안 설정 검증
