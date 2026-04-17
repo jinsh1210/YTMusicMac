@@ -6,6 +6,14 @@
 
 ## 🇺🇸 English
 
+### [0.1.5] - 2026-04-17
+
+#### Fixed
+- Optimized User-Agent to standard Safari 17.5 to resolve Google's "Insecure Browser" blocking while avoiding forced Passkey prompts.
+- Fixed sidebar auto-collapsing issue by increasing window `minWidth` to 1050px.
+- Restored automatic redirection to `music.youtube.com` after successful Google Login.
+- Resolved multiple SwiftLint violations and cleaned up codebase.
+
 ### [0.1.4] - 2026-04-17
 
 #### Added
@@ -35,6 +43,14 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.1.5] - 2026-04-17
+
+#### 수정된 기능
+- 구글의 "안전하지 않은 브라우저" 차단 문제를 해결하고 패스키 강제 호출을 방지하기 위해 User-Agent를 표준 Safari 17.5로 최적화.
+- 창 최소 너비를 1050px로 상향하여 사이드바가 자동으로 접히는 현상 해결.
+- 구글 로그인 완료 후 `music.youtube.com`으로 자동 복귀하는 리다이렉트 로직 복구.
+- 모든 SwiftLint 위반 사항 수정 및 코드 베이스 정리.
 
 ### [0.1.4] - 2026-04-17
 
