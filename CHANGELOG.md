@@ -6,21 +6,21 @@
 
 ## 🇺🇸 English
 
-### [0.1.12] - 2026-04-17
+### [0.1.13] - 2026-04-17
 
 #### Fixed
-- Improved `sign_update` binary discovery in the Release workflow to handle varying Sparkle tarball structures.
+- Improved Sparkle signing process in Release workflow by registering the private key in the macOS keychain.
 
-### [0.1.11] - 2026-04-17
+### [0.1.12] - 2026-04-17
 ...
 ---
 
 ## 🇰🇷 한국어
 
-### [0.1.12] - 2026-04-17
+### [0.1.13] - 2026-04-17
 
 #### 수정된 기능
-- Sparkle tarball 구조 변화에 대응하기 위해 릴리스 워크플로우에서 `sign_update` 바이너리 탐색 로직을 개선함.
+- 개인키를 macOS 키체인에 등록하여 릴리스 워크플로우의 Sparkle 서명 프로세스를 개선함.
 
-### [0.1.11] - 2026-04-17
+### [0.1.12] - 2026-04-17
 ...
