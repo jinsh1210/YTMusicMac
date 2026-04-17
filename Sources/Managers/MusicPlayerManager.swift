@@ -8,7 +8,6 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     @Published var isLoading = true
 
     let webView: WKWebView
-    /// 로그인 과정 중인지 확인하는 상태값
     private var isAuthenticating = false
 
     override init() {
@@ -18,6 +17,9 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         config.websiteDataStore = .default()
         config.allowsAirPlayForMediaPlayback = true
         config.upgradeKnownHostsToHTTPS = true
+        
+        // 데스크탑 레이아웃 보장을 위해 명시적 데스크탑 모드 설정
+        config.defaultWebpagePreferences.preferredContentMode = .desktop
 
         webView = WKWebView(frame: .zero, configuration: config)
         super.init()
@@ -44,7 +46,8 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     private func setupWebView() {
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
+        // 구글이 '안전한 브라우저'로 인식하는 유일한 값은 표준 Safari UA입니다.
+        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"
     }
 
     private func loadInitialURL() {
@@ -119,17 +122,9 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         }
     }
 
-    func togglePlay() {
-        executeJavaScript("document.querySelector('#play-pause-button').click()")
-    }
-
-    func nextTrack() {
-        executeJavaScript("document.querySelector('.next-button').click()")
-    }
-
-    func previousTrack() {
-        executeJavaScript("document.querySelector('.previous-button').click()")
-    }
+    func togglePlay() { executeJavaScript("document.querySelector('#play-pause-button').click()") }
+    func nextTrack() { executeJavaScript("document.querySelector('.next-button').click()") }
+    func previousTrack() { executeJavaScript("document.querySelector('.previous-button').click()") }
 
     private func executeJavaScript(_ script: String) {
         Task { try? await webView.evaluateJavaScript(script) }
@@ -148,10 +143,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
 
 private class WeakMessageHandler: NSObject, WKScriptMessageHandler {
     weak var manager: MusicPlayerManager?
-    init(_ manager: MusicPlayerManager) {
-        self.manager = manager
-    }
-
+    init(_ manager: MusicPlayerManager) { self.manager = manager }
     func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
         Task { @MainActor [weak self] in self?.manager?.handleMessage(message) }
     }
@@ -173,22 +165,18 @@ extension MusicPlayerManager: WKNavigationDelegate {
         }
 
         let host = url.host ?? ""
-
-        // Google 로그인 도메인 진입 시 인증 상태 활성화
         if host.hasSuffix(".google.com") || host == "google.com" || host == "accounts.youtube.com" {
             isAuthenticating = true
             decisionHandler(.allow)
             return
         }
 
-        // YouTube Music 진입 시 인증 상태 해제
         if host == "music.youtube.com" {
             isAuthenticating = false
             decisionHandler(.allow)
             return
         }
 
-        // 일반 YouTube 도메인 처리: 로그인 직후 리다이렉트이거나 루트 경로이면 뮤직으로 전환
         let youtubeHosts = ["www.youtube.com", "youtube.com", "m.youtube.com"]
         if youtubeHosts.contains(host) {
             if isAuthenticating || url.path == "/" || url.path == "" {

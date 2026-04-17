@@ -21,7 +21,7 @@ struct YTMusicMacApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(manager: playerManager)
-                .frame(minWidth: 940, minHeight: 600)
+                .frame(minWidth: 1050, minHeight: 750)
         }
         .commands {
             CommandGroup(after: .appInfo) {
