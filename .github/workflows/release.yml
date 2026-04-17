@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set Xcode Version
         run: sudo xcode-select -s /Applications/Xcode.app
@@ -43,12 +45,10 @@ jobs:
             echo "Error: App not found at $APP_PATH"
             exit 1
           fi
-          
-          # Create a temporary folder for DMG content
+
           mkdir -p dmg_root
           cp -R "$APP_PATH" dmg_root/
-          
-          # Generate pretty DMG
+
           create-dmg \
             --volname "YTMusicMac" \
             --window-pos 200 120 \
@@ -59,6 +59,66 @@ jobs:
             --app-drop-link 425 120 \
             "YTMusicMac.dmg" \
             "dmg_root/"
+
+      - name: Sign DMG and Update Appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+
+          # Extract build number from project.yml
+          BUILD_NUM=$(grep 'CURRENT_PROJECT_VERSION:' project.yml | awk '{print $2}')
+
+          # Download Sparkle tools (matching project's version 2.9.1)
+          curl -L "https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-2.9.1.tar.xz" \
+            -o sparkle.tar.xz
+          mkdir sparkle_bin
+          tar xf sparkle.tar.xz -C sparkle_bin bin/sign_update
+          chmod +x sparkle_bin/bin/sign_update
+
+          # Sign DMG — output: sparkle:edSignature="..." length="..."
+          SIGN_INFO=$(./sparkle_bin/bin/sign_update YTMusicMac.dmg -s "$SPARKLE_PRIVATE_KEY")
+          ED_SIG=$(echo "$SIGN_INFO" | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
+          FILE_SIZE=$(echo "$SIGN_INFO" | sed 's/.*length="\([^"]*\)".*/\1/')
+
+          echo "Signature: $ED_SIG"
+          echo "File size: $FILE_SIZE"
+
+          # Generate appcast.xml with correct signature and file info
+          cat > appcast.xml << APPCAST
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>YTMusicMac Changelog</title>
+        <link>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/appcast.xml</link>
+        <description>Most recent changes with links to updates.</description>
+        <language>en</language>
+        <item>
+            <title>Version ${VERSION}</title>
+            <sparkle:releaseNotesLink>
+                https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
+            </sparkle:releaseNotesLink>
+            <pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/${TAG}/YTMusicMac.dmg"
+                       sparkle:version="${BUILD_NUM}"
+                       sparkle:shortVersionString="${VERSION}"
+                       sparkle:edSignature="${ED_SIG}"
+                       length="${FILE_SIZE}"
+                       type="application/octet-stream" />
+        </item>
+    </channel>
+</rss>
+APPCAST
+
+          # Push updated appcast.xml to main
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+          git fetch origin main
+          git checkout main
+          git add appcast.xml
+          git commit -m "chore: update appcast for ${TAG}" || echo "No changes to commit"
+          git push origin main
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
