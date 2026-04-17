@@ -86,30 +86,32 @@ jobs:
           echo "File size: $FILE_SIZE"
 
           # Generate appcast.xml with correct signature and file info
-          cat > appcast.xml << APPCAST
-<?xml version="1.0" standalone="yes"?>
-<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
-    <channel>
-        <title>YTMusicMac Changelog</title>
-        <link>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/appcast.xml</link>
-        <description>Most recent changes with links to updates.</description>
-        <language>en</language>
-        <item>
-            <title>Version ${VERSION}</title>
-            <sparkle:releaseNotesLink>
-                https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
-            </sparkle:releaseNotesLink>
-            <pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>
-            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/${TAG}/YTMusicMac.dmg"
-                       sparkle:version="${BUILD_NUM}"
-                       sparkle:shortVersionString="${VERSION}"
-                       sparkle:edSignature="${ED_SIG}"
-                       length="${FILE_SIZE}"
-                       type="application/octet-stream" />
-        </item>
-    </channel>
-</rss>
-APPCAST
+          # (printf 사용 — heredoc은 YAML 인덴테이션 충돌로 파싱 오류 발생)
+          PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
+          {
+            printf '<?xml version="1.0" standalone="yes"?>\n'
+            printf '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">\n'
+            printf '    <channel>\n'
+            printf '        <title>YTMusicMac Changelog</title>\n'
+            printf '        <link>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/appcast.xml</link>\n'
+            printf '        <description>Most recent changes with links to updates.</description>\n'
+            printf '        <language>en</language>\n'
+            printf '        <item>\n'
+            printf '            <title>Version %s</title>\n' "$VERSION"
+            printf '            <sparkle:releaseNotesLink>\n'
+            printf '                https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md\n'
+            printf '            </sparkle:releaseNotesLink>\n'
+            printf '            <pubDate>%s</pubDate>\n' "$PUB_DATE"
+            printf '            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/%s/YTMusicMac.dmg"\n' "$TAG"
+            printf '                       sparkle:version="%s"\n' "$BUILD_NUM"
+            printf '                       sparkle:shortVersionString="%s"\n' "$VERSION"
+            printf '                       sparkle:edSignature="%s"\n' "$ED_SIG"
+            printf '                       length="%s"\n' "$FILE_SIZE"
+            printf '                       type="application/octet-stream" />\n'
+            printf '        </item>\n'
+            printf '    </channel>\n'
+            printf '</rss>\n'
+          } > appcast.xml
 
           # Push updated appcast.xml to main
           git config user.email "github-actions@github.com"
