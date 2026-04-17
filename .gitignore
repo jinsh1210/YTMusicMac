@@ -28,3 +28,6 @@ Icon
 # SwiftLint/Format
 .swiftlint.log
 .swiftformat
+
+# Sparkle local tools (CI에서 자동 다운로드)
+Sparkle-*/
