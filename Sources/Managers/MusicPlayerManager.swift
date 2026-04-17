@@ -18,7 +18,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         config.allowsAirPlayForMediaPlayback = true
         config.upgradeKnownHostsToHTTPS = true
         
-        // 데스크탑 레이아웃 보장을 위해 명시적 데스크탑 모드 설정
+        // 데스크탑 모드를 명시적으로 선호 설정하여 모바일 리다이렉트 및 터치 UI 방지
         config.defaultWebpagePreferences.preferredContentMode = .desktop
 
         webView = WKWebView(frame: .zero, configuration: config)
@@ -46,7 +46,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     private func setupWebView() {
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        // 구글이 '안전한 브라우저'로 인식하는 유일한 값은 표준 Safari UA입니다.
+        // 표준 데스크탑 Safari UserAgent
         webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"
     }
 
