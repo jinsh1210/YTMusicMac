@@ -3,7 +3,7 @@ import SwiftUI
 
 @main
 struct YTMusicMacApp: App {
-    @StateObject private var playerManager = MusicPlayerManager()
+    @StateObject private var playerManager: MusicPlayerManager
     private let updater: SPUUpdater
 
     init() {

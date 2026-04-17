@@ -18,6 +18,7 @@ struct ContentView: View {
                 .transition(.opacity)
             }
         }
-        .animation(.default, value: manager.isLoading)
+        .animation(.easeOut(duration: 0.15), value: manager.isLoading)
     }
 }
+
