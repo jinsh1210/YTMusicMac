@@ -9,10 +9,19 @@
 ### [0.1.15] - 2026-04-17
 
 #### Fixed
-- Improved Sparkle signing in CI by using a temporary key file with `--ed-key-file` instead of the macOS keychain to avoid environment-specific issues.
+- **Fully Automated Sparkle Updates**: Finalized GitHub Actions workflow to automatically sign DMG with EdDSA and update `appcast.xml`.
+- **Improved CI Reliability**: Switched to temporary key files to bypass macOS keychain restrictions in CI environments.
 
-### [0.1.14] - 2026-04-17
+### [0.1.8] - 2026-04-17
+
+#### Fixed
+- Resolved sidebar/scrollbar layout issues by enforcing desktop mode on every navigation action.
+- Fixed a memory leak in the App entry point.
+- Optimized performance with Content Rule List and JS DOM caching.
+
+### [0.1.0] - 2026-04-17
 ...
+
 ---
 
 ## 🇰🇷 한국어
@@ -20,7 +29,15 @@
 ### [0.1.15] - 2026-04-17
 
 #### 수정된 기능
-- CI 환경의 특수성을 고려하여 macOS 키체인 대신 `--ed-key-file` 옵션과 임시 키 파일을 사용하여 Sparkle 서명 프로세스를 개선함.
+- **완전 자동화된 Sparkle 업데이트**: GitHub Actions에서 EdDSA 서명을 생성하고 `appcast.xml`을 자동으로 갱신하는 프로세스를 최종 완성함.
+- **CI 안정성 향상**: macOS 키체인 제약을 우회하기 위해 임시 키 파일을 사용하는 방식으로 서명 로직을 개선함.
 
-### [0.1.14] - 2026-04-17
+### [0.1.8] - 2026-04-17
+
+#### 수정된 기능
+- 모든 네비게이션 시 데스크탑 모드를 강제하여 사이드바/스크롤바 레이아웃 이슈 해결.
+- 앱 진입점의 메모리 누수 수정.
+- 콘텐츠 규칙 및 JS DOM 캐싱을 통한 성능 최적화.
+
+### [0.1.0] - 2026-04-17
 ...

@@ -10,12 +10,24 @@
             <sparkle:releaseNotesLink>
                 https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
             </sparkle:releaseNotesLink>
-            <pubDate>Fri, 17 Apr 2026 09:29:52 +0000</pubDate>
+            <pubDate>Fri, 17 Apr 2026 18:00:00 +0000</pubDate>
             <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.15/YTMusicMac.dmg"
                        sparkle:version="15"
                        sparkle:shortVersionString="0.1.15"
-                       sparkle:edSignature="qTz0eYWX9M4NX5tU912q6U2XoSAgJa+GRrFhEY5fHjLtN/hPd55zQxUwZilSXz4Qk6rXAmfWrk24aRnb/rMYCw=="
-                       length="1118179"
+                       sparkle:edSignature="EbxSKB06bMPyN+4xN4nhuiAEF+e4R8Z6SR+1fgdL0ejOKNakstXVqCIdqhjEG2zVvkPHRxf0yknFd3xLYvbEDA=="
+                       length="1118182"
+                       type="application/octet-stream" />
+        </item>
+        <item>
+            <title>Version 0.1.8</title>
+            <sparkle:releaseNotesLink>
+                https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
+            </sparkle:releaseNotesLink>
+            <pubDate>Fri, 17 Apr 2026 12:00:00 +0000</pubDate>
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.8/YTMusicMac.dmg"
+                       sparkle:version="8"
+                       sparkle:shortVersionString="0.1.8"
+                       length="0"
                        type="application/octet-stream" />
         </item>
     </channel>
