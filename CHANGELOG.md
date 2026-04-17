@@ -6,11 +6,13 @@
 
 ## 🇺🇸 English
 
-### [0.1.15] - 2026-04-17
+### [0.1.16] - 2026-04-17
 
 #### Fixed
-- **Fully Automated Sparkle Updates**: Finalized GitHub Actions workflow to automatically sign DMG with EdDSA and update `appcast.xml`.
-- **Improved CI Reliability**: Switched to temporary key files to bypass macOS keychain restrictions in CI environments.
+- **Scrollbar UI Fix**: Resolved the white background issue on the scrollbar and styled it for a cleaner dark mode appearance.
+- **Sparkle Signing Reliability**: Improved CI/CD signing by using temporary key files, bypassing macOS keychain permission errors.
+
+### [0.1.15] - 2026-04-17
 
 ### [0.1.8] - 2026-04-17
 
@@ -25,6 +27,12 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.1.16] - 2026-04-17
+
+#### 수정된 기능
+- **스크롤바 UI 개선**: 스크롤바의 흰색 배경 문제를 해결하고 다크 모드에 최적화된 스타일을 적용했습니다.
+- **Sparkle 서명 안정성 향상**: CI 환경에서 macOS 키체인 제약을 우회하기 위해 임시 키 파일을 사용하는 방식으로 서명 로직을 개선했습니다.
 
 ### [0.1.15] - 2026-04-17
 
