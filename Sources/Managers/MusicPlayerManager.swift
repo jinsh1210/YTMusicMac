@@ -11,15 +11,18 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     private var isAuthenticating = false
 
     override init() {
+        let prefs = WKWebpagePreferences()
+        prefs.preferredContentMode = .desktop
+        prefs.allowsContentJavaScript = true
+
         let config = WKWebViewConfiguration()
         let controller = WKUserContentController()
         config.userContentController = controller
         config.websiteDataStore = .default()
         config.allowsAirPlayForMediaPlayback = true
         config.upgradeKnownHostsToHTTPS = true
-        
-        // 데스크탑 레이아웃 보장을 위해 명시적 데스크탑 모드 설정
-        config.defaultWebpagePreferences.preferredContentMode = .desktop
+        config.defaultWebpagePreferences = prefs
+        config.mediaTypesRequiringUserActionForPlayback = []
 
         webView = WKWebView(frame: .zero, configuration: config)
         super.init()
@@ -29,7 +32,10 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         Task {
             await setupContentRules()
             loadInitialURL()
-            checkAndEjectDMG()
+            // DMG 이젝션 로직을 백그라운드 우선순위로 실행
+            Task(priority: .background) {
+                checkAndEjectDMG()
+            }
         }
     }
 
@@ -46,8 +52,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     private func setupWebView() {
         webView.navigationDelegate = self
         webView.uiDelegate = self
-        // 구글이 '안전한 브라우저'로 인식하는 유일한 값은 표준 Safari UA입니다.
-        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15"
+        webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
     }
 
     private func loadInitialURL() {
@@ -64,7 +69,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         function observePlayer() {
             const playerBar = document.querySelector('ytmusic-player-bar');
             if (!playerBar) {
-                setTimeout(observePlayer, 1000);
+                setTimeout(observePlayer, 1000); // 1초 간격으로 확인
                 return;
             }
             function updateStatus() {
@@ -72,8 +77,8 @@ final class MusicPlayerManager: NSObject, ObservableObject {
                     const title = document.querySelector('.title.style-scope.ytmusic-player-bar')?.innerText || "";
                     const artist = document.querySelector('.byline.style-scope.ytmusic-player-bar')?.innerText || "";
                     const art = document.querySelector('#layout > ytmusic-player-bar > div.middle-controls.style-scope.ytmusic-player-bar > img')?.src || "";
-                    const isPlaying = document.querySelector('#play-pause-button')?.getAttribute('aria-label') === '일시중지' ||
-                                       document.querySelector('#play-pause-button')?.getAttribute('aria-label') === 'Pause';
+                    const playBtnLabel = document.querySelector('#play-pause-button')?.getAttribute('aria-label') ?? '';
+                    const isPlaying = playBtnLabel === '일시중지' || playBtnLabel === 'Pause';
                     window.webkit.messageHandlers.trackChanged.postMessage({title, artist, art});
                     window.webkit.messageHandlers.playbackChanged.postMessage(isPlaying);
                 } catch(e) {}
@@ -91,6 +96,21 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     }
 
     private func setupContentRules() async {
+        guard let store = WKContentRuleListStore.default() else { return }
+        let identifier = "YTMusicBlock"
+
+        // 캐시된 규칙 우선 조회 — 매 실행마다 재컴파일하지 않아 URL 로드 지연을 방지
+        let cached = await withCheckedContinuation { (cont: CheckedContinuation<WKContentRuleList?, Never>) in
+            store.lookUpContentRuleList(forIdentifier: identifier) { list, _ in
+                cont.resume(returning: list)
+            }
+        }
+        if let cached {
+            webView.configuration.userContentController.add(cached)
+            return
+        }
+
+        // 최초 실행 시에만 컴파일 후 디스크에 저장
         let rules = #"""
         [
             {"trigger":{"url-filter":".*\\.doubleclick\\.net"},"action":{"type":"block"}},
@@ -101,10 +121,7 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         ]
         """#
         await withCheckedContinuation { continuation in
-            WKContentRuleListStore.default().compileContentRuleList(
-                forIdentifier: "YTMusicBlock",
-                encodedContentRuleList: rules
-            ) { [weak self] ruleList, _ in
+            store.compileContentRuleList(forIdentifier: identifier, encodedContentRuleList: rules) { [weak self] ruleList, _ in
                 if let self, let ruleList {
                     self.webView.configuration.userContentController.add(ruleList)
                 }
@@ -158,22 +175,31 @@ extension MusicPlayerManager: WKNavigationDelegate {
         isLoading = false
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    // WKWebpagePreferences를 포함하는 최신 델리게이트 메서드로 교체하여 데스크탑 모드 강제
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences, decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
         guard let url = navigationAction.request.url else {
-            decisionHandler(.allow)
+            decisionHandler(.allow, preferences)
+            return
+        }
+
+        // 매 이동마다 데스크탑 모드 강제 적용
+        preferences.preferredContentMode = .desktop
+
+        guard let targetFrame = navigationAction.targetFrame, targetFrame.isMainFrame else {
+            decisionHandler(.allow, preferences)
             return
         }
 
         let host = url.host ?? ""
         if host.hasSuffix(".google.com") || host == "google.com" || host == "accounts.youtube.com" {
             isAuthenticating = true
-            decisionHandler(.allow)
+            decisionHandler(.allow, preferences)
             return
         }
 
         if host == "music.youtube.com" {
             isAuthenticating = false
-            decisionHandler(.allow)
+            decisionHandler(.allow, preferences)
             return
         }
 
@@ -182,13 +208,13 @@ extension MusicPlayerManager: WKNavigationDelegate {
             if isAuthenticating || url.path == "/" || url.path == "" {
                 isAuthenticating = false
                 isLoading = true
-                decisionHandler(.cancel)
+                decisionHandler(.cancel, preferences)
                 webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
                 return
             }
         }
 
-        decisionHandler(.allow)
+        decisionHandler(.allow, preferences)
     }
 }
 
