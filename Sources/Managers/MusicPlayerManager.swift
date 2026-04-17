@@ -139,9 +139,17 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         }
     }
 
-    func togglePlay() { executeJavaScript("document.querySelector('#play-pause-button').click()") }
-    func nextTrack() { executeJavaScript("document.querySelector('.next-button').click()") }
-    func previousTrack() { executeJavaScript("document.querySelector('.previous-button').click()") }
+    func togglePlay() {
+        executeJavaScript("document.querySelector('#play-pause-button').click()")
+    }
+
+    func nextTrack() {
+        executeJavaScript("document.querySelector('.next-button').click()")
+    }
+
+    func previousTrack() {
+        executeJavaScript("document.querySelector('.previous-button').click()")
+    }
 
     private func executeJavaScript(_ script: String) {
         Task { try? await webView.evaluateJavaScript(script) }
@@ -160,7 +168,10 @@ final class MusicPlayerManager: NSObject, ObservableObject {
 
 private class WeakMessageHandler: NSObject, WKScriptMessageHandler {
     weak var manager: MusicPlayerManager?
-    init(_ manager: MusicPlayerManager) { self.manager = manager }
+    init(_ manager: MusicPlayerManager) {
+        self.manager = manager
+    }
+
     func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
         Task { @MainActor [weak self] in self?.manager?.handleMessage(message) }
     }
@@ -175,7 +186,7 @@ extension MusicPlayerManager: WKNavigationDelegate {
         isLoading = false
     }
 
-    // WKWebpagePreferences를 포함하는 최신 델리게이트 메서드로 교체하여 데스크탑 모드 강제
+    /// WKWebpagePreferences를 포함하는 최신 델리게이트 메서드로 교체하여 데스크탑 모드 강제
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences, decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
         guard let url = navigationAction.request.url else {
             decisionHandler(.allow, preferences)
