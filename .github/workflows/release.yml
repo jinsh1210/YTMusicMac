@@ -70,18 +70,23 @@ jobs:
           # Extract build number from project.yml
           BUILD_NUM=$(grep 'CURRENT_PROJECT_VERSION:' project.yml | awk '{print $2}')
 
-          # Download Sparkle tools (matching project's version 2.9.1)
+          # Sparkle 툴 다운로드 후 sign_update 위치 탐색
           curl -L "https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-2.9.1.tar.xz" \
             -o sparkle.tar.xz
           mkdir sparkle_bin
           tar xf sparkle.tar.xz -C sparkle_bin
           SIGN_UPDATE=$(find sparkle_bin -name sign_update -type f | head -1)
           chmod +x "$SIGN_UPDATE"
-          echo "sign_update found at: $SIGN_UPDATE"
+
+          # macOS 키체인에 private key 등록 — sign_update가 키체인에서 읽음
+          security add-generic-password \
+            -a sparkle \
+            -s com.sparkle-project.Sparkle \
+            -w "$SPARKLE_PRIVATE_KEY" \
+            -U
 
           # Sign DMG — output: sparkle:edSignature="..." length="..."
-          # private key를 stdin으로 전달 (-s 옵션은 deprecated)
-          SIGN_INFO=$(echo "$SPARKLE_PRIVATE_KEY" | "$SIGN_UPDATE" YTMusicMac.dmg)
+          SIGN_INFO=$("$SIGN_UPDATE" YTMusicMac.dmg)
           ED_SIG=$(echo "$SIGN_INFO" | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
           FILE_SIZE=$(echo "$SIGN_INFO" | sed 's/.*length="\([^"]*\)".*/\1/')
 
