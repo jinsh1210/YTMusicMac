@@ -6,23 +6,23 @@
 
 ## 🇺🇸 English
 
-### [0.1.9] - 2026-04-17
+### [0.1.10] - 2026-04-17
 
 #### Fixed
-- Finalized automatic Sparkle update flow with improved EdDSA signing and reliable `appcast.xml` manipulation in GitHub Actions.
-- Fixed version synchronization issues to ensure a smooth transition for all users.
+- Resolved YAML parsing error in the Release workflow by replacing heredoc with `printf` for safer XML generation.
+- Improved overall code style and resolved remaining SwiftLint violations.
 
-### [0.1.8] - 2026-04-17
+### [0.1.9] - 2026-04-17
 ...
 ---
 
 ## 🇰🇷 한국어
 
-### [0.1.9] - 2026-04-17
+### [0.1.10] - 2026-04-17
 
 #### 수정된 기능
-- 개선된 EdDSA 서명 및 GitHub Actions 내 `appcast.xml` 조작 로직을 통해 Sparkle 자동 업데이트 흐름을 최종 완성함.
-- 모든 사용자가 원활하게 업데이트를 받을 수 있도록 버전 동기화 문제를 해결함.
+- Heredoc을 `printf`로 대체하여 릴리스 워크플로우의 YAML 파싱 오류를 해결하고 안정적인 XML 생성을 보장함.
+- 전반적인 코드 스타일을 개선하고 잔존하는 SwiftLint 위반 사항을 수정함.
 
-### [0.1.8] - 2026-04-17
+### [0.1.9] - 2026-04-17
 ...
