@@ -29,14 +29,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_ENTITLEMENTS: Sources/YTMusicMac.entitlements
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_SUFeedURL: "https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/appcast.xml"
-        INFOPLIST_KEY_SUPublicEDKey: "HVC0+xVfJtRtTnL/9bV39P2XavqpZpueNZEjzyc85+g="
-        INFOPLIST_KEY_NSAppTransportSecurity:
-          NSAllowsArbitraryLoads: true
-        INFOPLIST_KEY_NSCameraUsageDescription: "This app needs access to camera if needed for login."
-        INFOPLIST_KEY_NSMicrophoneUsageDescription: "This app needs access to microphone if needed for audio playback."
-        INFOPLIST_KEY_NSAppleEventsUsageDescription: "This app needs access to system events for media control."
+        INFOPLIST_FILE: Sources/Info.plist
         SWIFT_VERSION: "5.0"
         LD_RUNPATH_SEARCH_PATHS: $(inherited) @loader_path/../Frameworks
     postBuildScripts:
