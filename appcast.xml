@@ -1,65 +1,52 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
+        <title>YTMusicMac Changelog</title>
+        <link>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/gh-pages/appcast.xml</link>
+        <description>Most recent changes with links to updates.</description>
+        <language>en</language>
         <item>
             <title>Version 0.1.22</title>
             <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>
             <pubDate>Sat, 18 Apr 2026 18:40:49 +0000</pubDate>
-            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.22/YTMusicMac.dmg" sparkle:version="22" sparkle:shortVersionString="0.1.22" sparkle:edSignature="BLylbhEkbp+wLHaucAMrcK+XhWHlCCGp8bUAYpkPSnnj8JPlAOdC0Mxn6AlpjI8z43MO9eNr+E6jpYKxFWdcDw==" length="1090051" type="application/octet-stream" />
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.22/YTMusicMac.dmg"
+                       sparkle:version="22"
+                       sparkle:shortVersionString="0.1.22"
+                       sparkle:edSignature="BLylbhEkbp+wLHaucAMrcK+XhWHlCCGp8bUAYpkPSnnj8JPlAOdC0Mxn6AlpjI8z43MO9eNr+E6jpYKxFWdcDw=="
+                       length="1090051"
+                       type="application/octet-stream" />
         </item>
         <item>
             <title>Version 0.1.21</title>
             <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>
             <pubDate>Sat, 18 Apr 2026 18:26:33 +0000</pubDate>
-            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.21/YTMusicMac.dmg" sparkle:version="21" sparkle:shortVersionString="0.1.21" sparkle:edSignature="6rmBwrprZ9P/+eZmCxVuU8luKXAgsby7/URUBhTF83G7ATTusNQC67B8IlczYGtDzzBxx9Mssq7EkXLZDmyuDQ==" length="1090048" type="application/octet-stream" />
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.21/YTMusicMac.dmg"
+                       sparkle:version="21"
+                       sparkle:shortVersionString="0.1.21"
+                       sparkle:edSignature="6rmBwrprZ9P/+eZmCxVuU8luKXAgsby7/URUBhTF83G7ATTusNQC67B8IlczYGtDzzBxx9Mssq7EkXLZDmyuDQ=="
+                       length="1090048"
+                       type="application/octet-stream" />
         </item>
         <item>
             <title>Version 0.1.20</title>
             <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>
             <pubDate>Sat, 18 Apr 2026 18:14:55 +0000</pubDate>
-            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.20/YTMusicMac.dmg" sparkle:version="20" sparkle:shortVersionString="0.1.20" sparkle:edSignature="LynwBO+UJ6FN+wgvgktHavQWDTS71dSit4yEvDi3CaTFfPgMb0SQnkTTV2YFtfAofu+ArwN4vNqXBTdJzl16DQ==" length="1120452" type="application/octet-stream" />
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.20/YTMusicMac.dmg"
+                       sparkle:version="20"
+                       sparkle:shortVersionString="0.1.20"
+                       sparkle:edSignature="LynwBO+UJ6FN+wgvgktHavQWDTS71dSit4yEvDi3CaTFfPgMb0SQnkTTV2YFtfAofu+ArwN4vNqXBTdJzl16DQ=="
+                       length="1120452"
+                       type="application/octet-stream" />
         </item>
-        <title>YTMusicMac Changelog</title>
-        <link>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/appcast.xml</link>
-        <description>Most recent changes with links to updates.</description>
-        <language>en</language>
         <item>
             <title>Version 0.1.17</title>
-            <sparkle:releaseNotesLink>
-                https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
-            </sparkle:releaseNotesLink>
+            <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>
             <pubDate>Sun, 19 Apr 2026 10:00:00 +0000</pubDate>
             <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.17/YTMusicMac.dmg"
                        sparkle:version="17"
                        sparkle:shortVersionString="0.1.17"
                        sparkle:edSignature="ekqnZAaqLhtfw/z8Lpw8X16PgybEVATtXLMT6wVjzieVWMqiFf51tTLDkcPmLdXgMib5qjPOn31aY4swVXUtDg=="
                        length="1120466"
-                       type="application/octet-stream" />
-        </item>
-        <item>
-            <title>Version 0.1.16</title>
-            <sparkle:releaseNotesLink>
-                https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
-            </sparkle:releaseNotesLink>
-            <pubDate>Sun, 19 Apr 2026 09:00:00 +0000</pubDate>
-            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.16/YTMusicMac.dmg"
-                       sparkle:version="16"
-                       sparkle:shortVersionString="0.1.16"
-                       sparkle:edSignature="o75aTB9L7JduuvY77QA6wx6I1uzuj0IecPcHyyKEu83NvRGwAHVqy7/6j2Ub+AKZ54VIS9rcCIndOTKU3rHeCw=="
-                       length="1120448"
-                       type="application/octet-stream" />
-        </item>
-        <item>
-            <title>Version 0.1.15</title>
-            <sparkle:releaseNotesLink>
-                https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md
-            </sparkle:releaseNotesLink>
-            <pubDate>Fri, 17 Apr 2026 18:00:00 +0000</pubDate>
-            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.15/YTMusicMac.dmg"
-                       sparkle:version="15"
-                       sparkle:shortVersionString="0.1.15"
-                       sparkle:edSignature="EbxSKB06bMPyN+4xN4nhuiAEF+e4R8Z6SR+1fgdL0ejOKNakstXVqCIdqhjEG2zVvkPHRxf0yknFd3xLYvbEDA=="
-                       length="1118182"
                        type="application/octet-stream" />
         </item>
     </channel>
