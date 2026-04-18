@@ -6,6 +6,11 @@
 
 ## 🇺🇸 English
 
+### [0.1.26] - 2026-04-19
+
+#### Removed
+- **Scrollbar UI**: Removed custom scrollbar CSS styling to revert to the native/default YouTube Music appearance.
+
 ### [0.1.25] - 2026-04-19
 
 #### Fixed
@@ -55,6 +60,11 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.1.26] - 2026-04-19
+
+#### 삭제된 기능
+- **스크롤바 UI**: 기본 YouTube Music의 외관을 사용하기 위해 사용자 정의 스크롤바 CSS 스타일링을 제거했습니다.
 
 ### [0.1.25] - 2026-04-19
 
