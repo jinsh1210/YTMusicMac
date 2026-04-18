@@ -6,6 +6,11 @@
 
 ## 🇺🇸 English
 
+### [0.1.22] - 2026-04-19
+
+#### Changed
+- **Security Settings**: Disabled Hardened Runtime to improve update reliability for non-Apple Developer signed builds.
+
 ### [0.1.17] - 2026-04-19
 
 #### Fixed
@@ -32,6 +37,11 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.1.22] - 2026-04-19
+
+#### 변경된 기능
+- **보안 설정**: Apple 개발자 서명이 없는 빌드의 업데이트 안정성을 높이기 위해 Hardened Runtime을 비활성화했습니다.
 
 ### [0.1.17] - 2026-04-19
 
