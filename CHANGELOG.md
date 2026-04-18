@@ -6,7 +6,7 @@
 
 ## 🇺🇸 English
 
-### [0.1.16] - 2026-04-17
+### [0.1.16] - 2026-04-19
 
 #### Fixed
 - **Scrollbar UI Fix**: Resolved the white background issue on the scrollbar and styled it for a cleaner dark mode appearance.
@@ -28,7 +28,7 @@
 
 ## 🇰🇷 한국어
 
-### [0.1.16] - 2026-04-17
+### [0.1.16] - 2026-04-19
 
 #### 수정된 기능
 - **스크롤바 UI 개선**: 스크롤바의 흰색 배경 문제를 해결하고 다크 모드에 최적화된 스타일을 적용했습니다.
