@@ -6,6 +6,16 @@
 
 ## 🇺🇸 English
 
+### [2026-04-19] - v0.1.17 Sparkle Signature Fix
+
+- **Scope**: Re-signing DMG with EdDSA private key.
+- **Results**:
+    - [PASS] Automated signature generation via GitHub Actions
+    - [PASS] Verified appcast.xml update with correct edSignature
+- **Notes**: Resolved "improperly signed" error by re-releasing with consistent signatures.
+
+---
+
 ### [2026-04-19] - v0.1.16 Scrollbar UI & Signing Reliability
 
 - **Scope**: Scrollbar CSS injection, CI Keychain bypass for Sparkle signing.
@@ -54,6 +64,16 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [2026-04-19] - v0.1.17 Sparkle 서명 수정
+
+- **범위**: EdDSA 개인 키를 사용하여 DMG 재서명.
+- **결과**:
+    - [PASS] GitHub Actions를 통한 자동 서명 생성 성공
+    - [PASS] 올바른 edSignature를 포함한 appcast.xml 업데이트 확인
+- **특이사항**: 서명 불일치로 인한 업데이트 오류를 해결하기 위해 재배포함.
+
+---
 
 ### [2026-04-19] - v0.1.16 스크롤바 UI 및 서명 안정성
 
