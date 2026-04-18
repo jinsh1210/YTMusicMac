@@ -6,6 +6,16 @@
 
 ## 🇺🇸 English
 
+### [2026-04-19] - v0.1.23 Scrollbar UI Fix
+
+- **Scope**: MutationObserver for CSS injection, scrollbar background styling.
+- **Results**:
+    - [PASS] Verified CSS remains applied after SPA navigation
+    - [PASS] Confirmed atDocumentStart injection avoids white flicker
+- **Notes**: Successfully resolved the persistent white scrollbar background issue.
+
+---
+
 ### [2026-04-19] - v0.1.22 Security Setting Adjustment
 
 - **Scope**: Disabling Hardened Runtime for unsigned app updates.
@@ -74,6 +84,16 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [2026-04-19] - v0.1.23 스크롤바 UI 수정
+
+- **범위**: CSS 주입을 위한 MutationObserver 적용, 스크롤바 배경 스타일링.
+- **결과**:
+    - [PASS] SPA 네비게이션 후에도 CSS가 유지됨을 확인
+    - [PASS] atDocumentStart 주입으로 흰색 깜빡임 현상 방지 확인
+- **특이사항**: 지속되던 스크롤바 흰색 배경 문제를 최종적으로 해결함.
+
+---
 
 ### [2026-04-19] - v0.1.22 보안 설정 조정
 
