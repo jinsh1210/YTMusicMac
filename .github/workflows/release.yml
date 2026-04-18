@@ -17,35 +17,36 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check Version Change
-        id: check_version
+      - name: Check if version is already tagged
+        id: check_tag
         run: |
           VERSION=$(grep 'MARKETING_VERSION:' project.yml | awk '{print $2}')
-          PREV_VERSION=$(git show HEAD^:project.yml | grep 'MARKETING_VERSION:' | awk '{print $2}' || echo "0.0.0")
-          if [ "$VERSION" == "$PREV_VERSION" ]; then
-            echo "Version hasn't changed ($VERSION). Skipping release."
-            echo "changed=false" >> $GITHUB_OUTPUT
+          TAG="v$VERSION"
+          git fetch --tags
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "Version $VERSION is already tagged ($TAG). Skipping release."
+            echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "Version changed: $PREV_VERSION -> $VERSION"
-            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Version $VERSION is new ($TAG). Proceeding with release."
+            echo "exists=false" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+            echo "tag=$TAG" >> $GITHUB_OUTPUT
           fi
 
       - name: Set Xcode Version
-        if: steps.check_version.outputs.changed == 'true'
+        if: steps.check_tag.outputs.exists == 'false'
         run: sudo xcode-select -s /Applications/Xcode.app
 
       - name: Install XcodeGen
-        if: steps.check_version.outputs.changed == 'true'
+        if: steps.check_tag.outputs.exists == 'false'
         run: brew install xcodegen
 
       - name: Generate Xcode Project
-        if: steps.check_version.outputs.changed == 'true'
+        if: steps.check_tag.outputs.exists == 'false'
         run: xcodegen generate
 
       - name: Build App
-        if: steps.check_version.outputs.changed == 'true'
+        if: steps.check_tag.outputs.exists == 'false'
         run: |
           xcodebuild -project YTMusicMac.xcodeproj \
                      -scheme YTMusicMac \
@@ -57,7 +58,7 @@ jobs:
                      clean build
 
       - name: Create DMG
-        if: steps.check_version.outputs.changed == 'true'
+        if: steps.check_tag.outputs.exists == 'false'
         run: |
           brew install create-dmg
           APP_PATH="build/Build/Products/Release/YTMusicMac.app"
@@ -81,12 +82,12 @@ jobs:
             "dmg_root/"
 
       - name: Sign DMG and Update Appcast
-        if: steps.check_version.outputs.changed == 'true'
+        if: steps.check_tag.outputs.exists == 'false'
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          TAG="${{ steps.check_version.outputs.tag }}"
-          VERSION="${{ steps.check_version.outputs.version }}"
+          TAG="${{ steps.check_tag.outputs.tag }}"
+          VERSION="${{ steps.check_tag.outputs.version }}"
           BUILD_NUM=$(grep 'CURRENT_PROJECT_VERSION:' project.yml | awk '{print $2}')
 
           # Sparkle 툴 다운로드 및 압축 해제
@@ -110,35 +111,38 @@ jobs:
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
           
-          # Fetch existing appcast.xml from gh-pages or start fresh
-          git fetch origin gh-pages || git checkout --orphan gh-pages
-          git checkout gh-pages || git checkout --orphan gh-pages
+          git fetch origin gh-pages
+          git checkout gh-pages
           
-          # If file doesn't exist, create initial rss structure
-          if [ ! -f "appcast.xml" ]; then
-            printf '<?xml version="1.0" standalone="yes"?>\n<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">\n    <channel>\n        <title>YTMusicMac Changelog</title>\n    </channel>\n</rss>\n' > appcast.xml
-          fi
-
           PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
           
-          # 새 아이템 추가 (sed를 사용해 <channel> 뒤에 삽입)
-          NEW_ITEM=$(printf '        <item>\n            <title>Version %s</title>\n            <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>\n            <pubDate>%s</pubDate>\n            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/%s/YTMusicMac.dmg" sparkle:version="%s" sparkle:shortVersionString="%s" sparkle:edSignature="%s" length="%s" type="application/octet-stream" />\n        </item>' "$VERSION" "$PUB_DATE" "$TAG" "$BUILD_NUM" "$VERSION" "$ED_SIG" "$FILE_SIZE")
+          # 새 아이템 생성
+          NEW_ITEM_CONTENT=$(cat <<EOF
+        <item>
+            <title>Version $VERSION</title>
+            <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>
+            <pubDate>$PUB_DATE</pubDate>
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/$TAG/YTMusicMac.dmg" sparkle:version="$BUILD_NUM" sparkle:shortVersionString="$VERSION" sparkle:edSignature="$ED_SIG" length="$FILE_SIZE" type="application/octet-stream" />
+        </item>
+EOF
+)
           
-          # <channel> 태그 바로 다음에 삽입하여 최신 버전이 위로 오게 함
-          sed -i '' "/<channel>/a\\
-$NEW_ITEM" appcast.xml
+          # 최신 버전 아이템을 상단에 추가하기 위해 임시 파일 생성
+          # <channel> 뒤에 삽입하는 안전한 방식
+          awk -v item="$NEW_ITEM_CONTENT" '{print} /<channel>/ {print item}' appcast.xml > appcast.xml.new
+          mv appcast.xml.new appcast.xml
 
           git add appcast.xml
           git commit -m "chore: update appcast for ${TAG} (automated)"
           git push origin gh-pages
 
       - name: Create Release
-        if: steps.check_version.outputs.changed == 'true'
+        if: steps.check_tag.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.check_version.outputs.tag }}
-          name: ${{ steps.check_version.outputs.tag }}
+          tag_name: ${{ steps.check_tag.outputs.tag }}
+          name: ${{ steps.check_tag.outputs.tag }}
           files: YTMusicMac.dmg
-          body: "Automated release for ${{ steps.check_version.outputs.tag }}"
+          body: "Automated release for ${{ steps.check_tag.outputs.tag }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
