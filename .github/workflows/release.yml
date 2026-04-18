@@ -17,17 +17,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check if version is already tagged
+      - name: Check version
         id: check_tag
         run: |
           VERSION=$(grep 'MARKETING_VERSION:' project.yml | awk '{print $2}')
           TAG="v$VERSION"
           git fetch --tags
           if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "Version $VERSION is already tagged ($TAG). Skipping release."
             echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "Version $VERSION is new ($TAG). Proceeding with release."
             echo "exists=false" >> $GITHUB_OUTPUT
             echo "version=$VERSION" >> $GITHUB_OUTPUT
             echo "tag=$TAG" >> $GITHUB_OUTPUT
@@ -37,23 +35,17 @@ jobs:
         if: steps.check_tag.outputs.exists == 'false'
         run: sudo xcode-select -s /Applications/Xcode.app
 
-      - name: Install XcodeGen
-        if: steps.check_tag.outputs.exists == 'false'
-        run: brew install xcodegen
-
-      - name: Generate Xcode Project
-        if: steps.check_tag.outputs.exists == 'false'
-        run: xcodegen generate
-
       - name: Build App
         if: steps.check_tag.outputs.exists == 'false'
         run: |
+          brew install xcodegen
+          xcodegen generate
           xcodebuild -project YTMusicMac.xcodeproj \
                      -scheme YTMusicMac \
                      -configuration Release \
                      -derivedDataPath build \
                      CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGN_REQUIRED=NO \
                      CODE_SIGN_IDENTITY="" \
                      clean build
 
@@ -62,14 +54,8 @@ jobs:
         run: |
           brew install create-dmg
           APP_PATH="build/Build/Products/Release/YTMusicMac.app"
-          if [ ! -d "$APP_PATH" ]; then
-            echo "Error: App not found at $APP_PATH"
-            exit 1
-          fi
-
           mkdir -p dmg_root
           cp -R "$APP_PATH" dmg_root/
-
           create-dmg \
             --volname "YTMusicMac" \
             --window-pos 200 120 \
@@ -81,7 +67,7 @@ jobs:
             "YTMusicMac.dmg" \
             "dmg_root/"
 
-      - name: Sign DMG and Update Appcast
+      - name: Sign and Update Appcast
         if: steps.check_tag.outputs.exists == 'false'
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
@@ -90,50 +76,43 @@ jobs:
           VERSION="${{ steps.check_tag.outputs.version }}"
           BUILD_NUM=$(grep 'CURRENT_PROJECT_VERSION:' project.yml | awk '{print $2}')
 
-          # Sparkle 툴 다운로드 및 압축 해제
-          curl -L "https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-2.9.1.tar.xz" \
-            -o sparkle.tar.xz
+          # Sparkle Tooling
+          curl -L "https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-2.9.1.tar.xz" -o sparkle.tar.xz
           mkdir -p sparkle_bin
           tar -xf sparkle.tar.xz -C sparkle_bin
-          
           SIGN_UPDATE=$(find sparkle_bin -name sign_update -type f | head -1)
-          chmod +x "$SIGN_UPDATE"
-
-          # Sign DMG using private key
-          echo "$SPARKLE_PRIVATE_KEY" > sparkle_key.txt
-          SIGN_INFO=$("$SIGN_UPDATE" --ed-key-file sparkle_key.txt YTMusicMac.dmg)
-          rm sparkle_key.txt
+          
+          # Sign DMG
+          echo "$SPARKLE_PRIVATE_KEY" > key.txt
+          SIGN_INFO=$("$SIGN_UPDATE" --ed-key-file key.txt YTMusicMac.dmg)
+          rm key.txt
 
           ED_SIG=$(echo "$SIGN_INFO" | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
           FILE_SIZE=$(echo "$SIGN_INFO" | sed 's/.*length="\([^"]*\)".*/\1/')
+          PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
 
-          # Update appcast.xml on gh-pages branch
+          # Update gh-pages branch
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
-          
           git fetch origin gh-pages
           git checkout gh-pages
           
-          PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
-          
-          # 새 아이템 생성
-          NEW_ITEM_CONTENT=$(cat <<EOF
-        <item>
-            <title>Version $VERSION</title>
-            <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>
-            <pubDate>$PUB_DATE</pubDate>
-            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/$TAG/YTMusicMac.dmg" sparkle:version="$BUILD_NUM" sparkle:shortVersionString="$VERSION" sparkle:edSignature="$ED_SIG" length="$FILE_SIZE" type="application/octet-stream" />
-        </item>
-EOF
-)
-          
-          # 최신 버전 아이템을 상단에 추가하기 위해 임시 파일 생성
-          # <channel> 뒤에 삽입하는 안전한 방식
-          awk -v item="$NEW_ITEM_CONTENT" '{print} /<channel>/ {print item}' appcast.xml > appcast.xml.new
-          mv appcast.xml.new appcast.xml
+          # XML Item Assembly (Safest way without complex shell variables)
+          {
+            printf "        <item>\n"
+            printf "            <title>Version %s</title>\n" "$VERSION"
+            printf "            <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>\n"
+            printf "            <pubDate>%s</pubDate>\n" "$PUB_DATE"
+            printf "            <enclosure url=\"https://github.com/jinsh1210/YTMusicMac/releases/download/%s/YTMusicMac.dmg\" sparkle:version=\"%s\" sparkle:shortVersionString=\"%s\" sparkle:edSignature=\"%s\" length=\"%s\" type=\"application/octet-stream\" />\n" "$TAG" "$BUILD_NUM" "$VERSION" "$ED_SIG" "$FILE_SIZE"
+            printf "        </item>\n"
+          } > new_item.xml
+
+          # Insert new item after <channel> using standard sed (portable)
+          sed -i.bak '/<channel>/r new_item.xml' appcast.xml
+          rm appcast.xml.bak new_item.xml
 
           git add appcast.xml
-          git commit -m "chore: update appcast for ${TAG} (automated)"
+          git commit -m "chore: update appcast for ${TAG}"
           git push origin gh-pages
 
       - name: Create Release
