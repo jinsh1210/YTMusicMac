@@ -6,6 +6,17 @@
 
 ## 🇺🇸 English
 
+### [2026-04-19] - v0.1.25 Scrollbar & Release Script Optimization
+
+- **Scope**: Scrollbar CSS color refinement, MutationObserver performance, Release script UX.
+- **Results**:
+    - [PASS] Refined scrollbar track color to #0f0f0f (matches YT Music theme)
+    - [PASS] Optimized MutationObserver to target document.head only
+    - [PASS] Verified DMG creation with /Applications shortcut
+- **Notes**: Improved overall UI consistency and localized deployment reliability.
+
+---
+
 ### [2026-04-19] - v0.1.24 Scrollbar Background Final Fix
 
 - **Scope**: AppKit NSAppearance force dark, NSScrollView background styling.
@@ -94,6 +105,17 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [2026-04-19] - v0.1.25 스크롤바 및 배포 스크립트 최적화
+
+- **범위**: 스크롤바 CSS 색상 조정, MutationObserver 성능 개선, 배포 스크립트 UX 향상.
+- **결과**:
+    - [PASS] 스크롤바 트랙 색상을 #0f0f0f로 조정 (YT Music 테마 일치)
+    - [PASS] MutationObserver의 감시 대상을 head로 최적화 완료
+    - [PASS] /Applications 바로가기가 포함된 DMG 생성 확인
+- **특이사항**: 전체적인 UI 일관성 및 로컬 배포 안정성을 개선함.
+
+---
 
 ### [2026-04-19] - v0.1.24 스크롤바 배경 최종 수정
 
