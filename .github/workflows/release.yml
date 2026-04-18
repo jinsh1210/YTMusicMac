@@ -2,8 +2,8 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -17,16 +17,35 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check Version Change
+        id: check_version
+        run: |
+          VERSION=$(grep 'MARKETING_VERSION:' project.yml | awk '{print $2}')
+          PREV_VERSION=$(git show HEAD^:project.yml | grep 'MARKETING_VERSION:' | awk '{print $2}' || echo "0.0.0")
+          if [ "$VERSION" == "$PREV_VERSION" ]; then
+            echo "Version hasn't changed ($VERSION). Skipping release."
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Version changed: $PREV_VERSION -> $VERSION"
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          fi
+
       - name: Set Xcode Version
+        if: steps.check_version.outputs.changed == 'true'
         run: sudo xcode-select -s /Applications/Xcode.app
 
       - name: Install XcodeGen
+        if: steps.check_version.outputs.changed == 'true'
         run: brew install xcodegen
 
       - name: Generate Xcode Project
+        if: steps.check_version.outputs.changed == 'true'
         run: xcodegen generate
 
       - name: Build App
+        if: steps.check_version.outputs.changed == 'true'
         run: |
           xcodebuild -project YTMusicMac.xcodeproj \
                      -scheme YTMusicMac \
@@ -38,6 +57,7 @@ jobs:
                      clean build
 
       - name: Create DMG
+        if: steps.check_version.outputs.changed == 'true'
         run: |
           brew install create-dmg
           APP_PATH="build/Build/Products/Release/YTMusicMac.app"
@@ -61,13 +81,12 @@ jobs:
             "dmg_root/"
 
       - name: Sign DMG and Update Appcast
+        if: steps.check_version.outputs.changed == 'true'
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          TAG="${GITHUB_REF_NAME}"
-          VERSION="${TAG#v}"
-
-          # Extract build number from project.yml
+          TAG="${{ steps.check_version.outputs.tag }}"
+          VERSION="${{ steps.check_version.outputs.version }}"
           BUILD_NUM=$(grep 'CURRENT_PROJECT_VERSION:' project.yml | awk '{print $2}')
 
           # Sparkle 툴 다운로드 및 압축 해제
@@ -77,18 +96,9 @@ jobs:
           tar -xf sparkle.tar.xz -C sparkle_bin
           
           SIGN_UPDATE=$(find sparkle_bin -name sign_update -type f | head -1)
-          if [ -z "$SIGN_UPDATE" ]; then
-            echo "Error: sign_update not found."
-            exit 1
-          fi
-          echo "Found sign_update at: $SIGN_UPDATE"
           chmod +x "$SIGN_UPDATE"
 
-          # Sign DMG using private key file (avoiding keychain issues in CI)
-          if [ -z "$SPARKLE_PRIVATE_KEY" ]; then
-            echo "Error: SPARKLE_PRIVATE_KEY secret is not set."
-            exit 1
-          fi
+          # Sign DMG using private key
           echo "$SPARKLE_PRIVATE_KEY" > sparkle_key.txt
           SIGN_INFO=$("$SIGN_UPDATE" --ed-key-file sparkle_key.txt YTMusicMac.dmg)
           rm sparkle_key.txt
@@ -96,49 +106,39 @@ jobs:
           ED_SIG=$(echo "$SIGN_INFO" | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
           FILE_SIZE=$(echo "$SIGN_INFO" | sed 's/.*length="\([^"]*\)".*/\1/')
 
-          echo "Signature: $ED_SIG"
-          echo "File size: $FILE_SIZE"
-
-          # Push updated appcast.xml to main (Check out BEFORE generating file)
+          # Update appcast.xml on gh-pages branch
           git config user.email "github-actions@github.com"
           git config user.name "GitHub Actions"
-          git fetch origin main
-          git checkout main
+          
+          # Fetch existing appcast.xml from gh-pages or start fresh
+          git fetch origin gh-pages || git checkout --orphan gh-pages
+          git checkout gh-pages || git checkout --orphan gh-pages
+          
+          # If file doesn't exist, create initial rss structure
+          if [ ! -f "appcast.xml" ]; then
+            printf '<?xml version="1.0" standalone="yes"?>\n<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">\n    <channel>\n        <title>YTMusicMac Changelog</title>\n    </channel>\n</rss>\n' > appcast.xml
+          fi
 
-          # Generate appcast.xml with correct signature and file info
           PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
-          {
-            printf '<?xml version="1.0" standalone="yes"?>\n'
-            printf '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">\n'
-            printf '    <channel>\n'
-            printf '        <title>YTMusicMac Changelog</title>\n'
-            printf '        <link>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/appcast.xml</link>\n'
-            printf '        <description>Most recent changes with links to updates.</description>\n'
-            printf '        <language>en</language>\n'
-            printf '        <item>\n'
-            printf '            <title>Version %s</title>\n' "$VERSION"
-            printf '            <sparkle:releaseNotesLink>\n'
-            printf '                https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md\n'
-            printf '            </sparkle:releaseNotesLink>\n'
-            printf '            <pubDate>%s</pubDate>\n' "$PUB_DATE"
-            printf '            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/%s/YTMusicMac.dmg"\n' "$TAG"
-            printf '                       sparkle:version="%s"\n' "$BUILD_NUM"
-            printf '                       sparkle:shortVersionString="%s"\n' "$VERSION"
-            printf '                       sparkle:edSignature="%s"\n' "$ED_SIG"
-            printf '                       length="%s"\n' "$FILE_SIZE"
-            printf '                       type="application/octet-stream" />\n'
-            printf '        </item>\n'
-            printf '    </channel>\n'
-            printf '</rss>\n'
-          } > appcast.xml
+          
+          # 새 아이템 추가 (sed를 사용해 <channel> 뒤에 삽입)
+          NEW_ITEM=$(printf '        <item>\n            <title>Version %s</title>\n            <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>\n            <pubDate>%s</pubDate>\n            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/%s/YTMusicMac.dmg" sparkle:version="%s" sparkle:shortVersionString="%s" sparkle:edSignature="%s" length="%s" type="application/octet-stream" />\n        </item>' "$VERSION" "$PUB_DATE" "$TAG" "$BUILD_NUM" "$VERSION" "$ED_SIG" "$FILE_SIZE")
+          
+          # <channel> 태그 바로 다음에 삽입하여 최신 버전이 위로 오게 함
+          sed -i '' "/<channel>/a\\
+$NEW_ITEM" appcast.xml
 
           git add appcast.xml
-          git commit -m "chore: update appcast for ${TAG}" || echo "No changes to commit"
-          git push origin main
+          git commit -m "chore: update appcast for ${TAG} (automated)"
+          git push origin gh-pages
 
       - name: Create Release
+        if: steps.check_version.outputs.changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.check_version.outputs.tag }}
+          name: ${{ steps.check_version.outputs.tag }}
           files: YTMusicMac.dmg
+          body: "Automated release for ${{ steps.check_version.outputs.tag }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
