@@ -54,9 +54,10 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         webView.uiDelegate = self
         webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
 
-        // Private KVC fallback (legacy)
+        // AppKit 레벨에서 다크 모드 강제 적용 — WKScrollView 배경이 시스템 라이트 모드일 때
+        // 흰색으로 그려지는 문제의 근본 원인을 차단
+        webView.appearance = NSAppearance(named: .darkAqua)
         webView.setValue(false, forKey: "drawsBackground")
-        // Public API (macOS 12+): 오버스크롤 영역 배경색 제거
         if #available(macOS 12.0, *) {
             webView.underPageBackgroundColor = .clear
         }
