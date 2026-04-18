@@ -6,6 +6,16 @@
 
 ## 🇺🇸 English
 
+### [2026-04-19] - v0.1.24 Scrollbar Background Final Fix
+
+- **Scope**: AppKit NSAppearance force dark, NSScrollView background styling.
+- **Results**:
+    - [PASS] Verified scrollbar background remains black regardless of system theme
+    - [PASS] Confirmed elimination of white background in the main scroll area
+- **Notes**: Achieved consistent dark appearance by targeting the root causes at the AppKit level.
+
+---
+
 ### [2026-04-19] - v0.1.23 Scrollbar UI Fix
 
 - **Scope**: MutationObserver for CSS injection, scrollbar background styling.
@@ -84,6 +94,16 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [2026-04-19] - v0.1.24 스크롤바 배경 최종 수정
+
+- **범위**: AppKit NSAppearance 다크 모드 강제, NSScrollView 배경 스타일링.
+- **결과**:
+    - [PASS] 시스템 테마와 관계없이 스크롤바 배경이 검정색으로 유지됨을 확인
+    - [PASS] 메인 스크롤 영역의 흰색 배경 제거 확인
+- **특이사항**: AppKit 레벨에서 근본 원인을 해결하여 일관된 다크 테마 외관을 구현함.
+
+---
 
 ### [2026-04-19] - v0.1.23 스크롤바 UI 수정
 

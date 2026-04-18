@@ -6,6 +6,11 @@
 
 ## 🇺🇸 English
 
+### [0.1.24] - 2026-04-19
+
+#### Fixed
+- **Scrollbar UI (Final)**: Resolved the white background issue by forcing Dark Mode appearance at the AppKit level and applying solid black backgrounds to the WebView and ScrollView.
+
 ### [0.1.23] - 2026-04-19
 
 #### Fixed
@@ -42,6 +47,11 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.1.24] - 2026-04-19
+
+#### 수정된 기능
+- **스크롤바 UI (최종)**: AppKit 레벨에서 다크 모드 외관을 강제하고 WebView 및 ScrollView에 검정색 배경을 적용하여 스크롤바의 흰색 배경 문제를 완전히 해결했습니다.
 
 ### [0.1.23] - 2026-04-19
 
