@@ -6,6 +6,17 @@
 
 ## 🇺🇸 English
 
+### [2026-04-17] - v0.1.16 Scrollbar UI & Signing Reliability
+
+- **Scope**: Scrollbar CSS injection, CI Keychain bypass for Sparkle signing.
+- **Results**:
+    - [PASS] Custom CSS for dark mode scrollbar (eliminated white background)
+    - [PASS] Sparkle signing using temporary key files in GitHub Actions
+    - [PASS] Refactored large JS string to satisfy SwiftLint function_body_length
+- **Notes**: Successfully resolved persistent UI layout issues and stabilized the automated release pipeline.
+
+---
+
 ### [2026-04-17] - v0.1.4 Login & UX Improvements
 
 - **Scope**: Google Auth popup flow, DMG Auto-eject logic.
@@ -43,6 +54,17 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [2026-04-17] - v0.1.16 스크롤바 UI 및 서명 안정성
+
+- **범위**: 스크롤바 CSS 주입, Sparkle 서명을 위한 CI 키체인 우회.
+- **결과**:
+    - [PASS] 다크 모드용 사용자 정의 스크롤바 CSS (흰색 배경 제거)
+    - [PASS] GitHub Actions에서 임시 키 파일을 통한 Sparkle 서명 성공
+    - [PASS] SwiftLint function_body_length 위반 해결을 위한 JS 문자열 리팩토링
+- **특이사항**: 지속되던 UI 레이아웃 문제를 해결하고 자동화된 릴리즈 파이프라인을 안정화함.
+
+---
 
 ### [2026-04-17] - v0.1.4 로그인 및 UX 개선
 
