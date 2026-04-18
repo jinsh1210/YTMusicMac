@@ -1,6 +1,12 @@
 <?xml version="1.0" standalone="yes"?>
 <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
     <channel>
+        <item>
+            <title>Version 0.1.23</title>
+            <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>
+            <pubDate>Sat, 18 Apr 2026 18:53:02 +0000</pubDate>
+            <enclosure url="https://github.com/jinsh1210/YTMusicMac/releases/download/v0.1.23/YTMusicMac.dmg" sparkle:version="23" sparkle:shortVersionString="0.1.23" sparkle:edSignature="HuI4sG9UGhdFCRhPPznEG2T1Ssv7IiU4bP5WDap7QNxFzlJSXlVD1O1W3Tdy1AKaKAD7OAhLFork/sMjxxCgAQ==" length="1090226" type="application/octet-stream" />
+        </item>
         <title>YTMusicMac Changelog</title>
         <link>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/gh-pages/appcast.xml</link>
         <description>Most recent changes with links to updates.</description>
