@@ -86,25 +86,6 @@ final class MusicPlayerManager: NSObject, ObservableObject {
                         color-scheme: dark !important;
                         background-color: #0f0f0f !important;
                     }
-                    ::-webkit-scrollbar {
-                        width: 10px !important;
-                        height: 10px !important;
-                        background-color: #0f0f0f !important;
-                    }
-                    ::-webkit-scrollbar-track {
-                        background: #0f0f0f !important;
-                    }
-                    ::-webkit-scrollbar-thumb {
-                        background: #333 !important;
-                        border-radius: 5px !important;
-                        border: 2px solid #0f0f0f !important;
-                    }
-                    ::-webkit-scrollbar-thumb:hover {
-                        background: #555 !important;
-                    }
-                    ::-webkit-scrollbar-corner {
-                        background-color: #0f0f0f !important;
-                    }
                 `;
                 (document.head || document.documentElement).appendChild(style);
             }

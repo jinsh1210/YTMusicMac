@@ -6,6 +6,16 @@
 
 ## 🇺🇸 English
 
+### [2026-04-19] - v0.1.26 Scrollbar Style Removal
+
+- **Scope**: Removing custom scrollbar CSS injection.
+- **Results**:
+    - [PASS] Verified custom CSS removal
+    - [PASS] Confirmed YouTube Music native scrollbar appearance
+- **Notes**: Reverted to default styling as requested.
+
+---
+
 ### [2026-04-19] - v0.1.25 Scrollbar & Release Script Optimization
 
 - **Scope**: Scrollbar CSS color refinement, MutationObserver performance, Release script UX.
@@ -105,6 +115,16 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [2026-04-19] - v0.1.26 스크롤바 스타일 제거
+
+- **범위**: 사용자 정의 스크롤바 CSS 주입 코드 제거.
+- **결과**:
+    - [PASS] 커스텀 CSS 삭제 확인
+    - [PASS] YouTube Music 기본 스크롤바 외관 적용 확인
+- **특이사항**: 요청에 따라 기본 스타일로 복구함.
+
+---
 
 ### [2026-04-19] - v0.1.25 스크롤바 및 배포 스크립트 최적화
 
