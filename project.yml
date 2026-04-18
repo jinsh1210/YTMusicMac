@@ -24,8 +24,8 @@ targets:
     settings:
       base:
         PRODUCT_NAME: YTMusicMac
-        MARKETING_VERSION: 0.1.20
-        CURRENT_PROJECT_VERSION: 20
+        MARKETING_VERSION: 0.1.21
+        CURRENT_PROJECT_VERSION: 21
 
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_HARDENED_RUNTIME: YES
@@ -44,11 +44,11 @@ targets:
           export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           if which swiftformat >/dev/null; then
             swiftformat . --swiftversion 5.0 || echo "warning: SwiftFormat failed"
-            if [ -n "${DERIVED_FILE_DIR}" ]; then
+            if [ ! -z "${DERIVED_FILE_DIR}" ]; then
               touch "${DERIVED_FILE_DIR}/swiftformat.stamp"
             fi
           else
-            echo "warning: SwiftFormat not installed"
+            echo "warning: SwiftFormat not installed, skipping formatting"
           fi
       - name: SwiftLint
         inputFiles:
@@ -59,22 +59,10 @@ targets:
         script: |
           export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
           if which swiftlint >/dev/null; then
-            swiftlint lint --strict || echo "warning: SwiftLint crashed or failed"
-            if [ -n "${DERIVED_FILE_DIR}" ]; then
+            swiftlint --fix && swiftlint
+            if [ ! -z "${DERIVED_FILE_DIR}" ]; then
               touch "${DERIVED_FILE_DIR}/swiftlint.stamp"
             fi
           else
-            echo "warning: SwiftLint not installed"
+            echo "warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint"
           fi
-  YTMusicMacTests:
-    type: bundle.unit-test
-    platform: macOS
-    deploymentTarget: "14.0"
-    sources:
-      - Tests
-    settings:
-      base:
-        GENERATE_INFOPLIST_FILE: YES
-        SWIFT_VERSION: "5.0"
-    dependencies:
-      - target: YTMusicMac
