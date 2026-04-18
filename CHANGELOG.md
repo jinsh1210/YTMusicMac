@@ -6,6 +6,14 @@
 
 ## 🇺🇸 English
 
+### [0.1.25] - 2026-04-19
+
+#### Fixed
+- **Scrollbar UI Optimization**: Refined CSS colors to match YouTube Music dark theme (#0f0f0f) and optimized MutationObserver performance by targeting only the document head.
+
+#### Changed
+- **Release Process**: Improved local DMG creation script with path safety and automatic `/Applications` symbolic link inclusion.
+
 ### [0.1.24] - 2026-04-19
 
 #### Fixed
@@ -47,6 +55,14 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.1.25] - 2026-04-19
+
+#### 수정된 기능
+- **스크롤바 UI 최적화**: YouTube Music 다크 테마(#0f0f0f)에 맞게 색상을 조정하고, MutationObserver의 대상을 head로 한정하여 성능을 최적화했습니다.
+
+#### 변경된 기능
+- **배포 프로세스**: 로컬 DMG 생성 스크립트에 경로 안전 로직 및 `/Applications` 바로가기 심볼릭 링크를 자동으로 포함하도록 개선했습니다.
 
 ### [0.1.24] - 2026-04-19
 

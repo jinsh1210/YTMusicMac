@@ -13,11 +13,8 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     override init() {
         let prefs = WKWebpagePreferences()
         prefs.preferredContentMode = .desktop
-        prefs.allowsContentJavaScript = true
 
         let config = WKWebViewConfiguration()
-        let controller = WKUserContentController()
-        config.userContentController = controller
         config.websiteDataStore = .default()
         config.allowsAirPlayForMediaPlayback = true
         config.upgradeKnownHostsToHTTPS = true
@@ -85,46 +82,38 @@ final class MusicPlayerManager: NSObject, ObservableObject {
                 const style = document.createElement('style');
                 style.id = 'ytmusic-scrollbar-style';
                 style.textContent = `
-                    html, body, ytmusic-app {
-                        background-color: #000000 !important;
+                    html {
+                        color-scheme: dark !important;
+                        background-color: #0f0f0f !important;
                     }
-                    /* For the main scrollbar */
                     ::-webkit-scrollbar {
                         width: 10px !important;
                         height: 10px !important;
-                        background-color: #000000 !important;
+                        background-color: #0f0f0f !important;
                     }
                     ::-webkit-scrollbar-track {
-                        background: #000000 !important;
+                        background: #0f0f0f !important;
                     }
                     ::-webkit-scrollbar-thumb {
-                        background: #333333 !important;
+                        background: #333 !important;
                         border-radius: 5px !important;
-                        border: 2px solid #000000 !important;
+                        border: 2px solid #0f0f0f !important;
                     }
                     ::-webkit-scrollbar-thumb:hover {
-                        background: #555555 !important;
+                        background: #555 !important;
                     }
                     ::-webkit-scrollbar-corner {
-                        background-color: #000000 !important;
-                    }
-                    
-                    /* Hide white backgrounds in specific YT Music components */
-                    tp-yt-paper-listbox, 
-                    tp-yt-paper-item,
-                    #contents.ytmusic-section-list-renderer,
-                    #items.ytmusic-grid-renderer {
-                        background-color: transparent !important;
+                        background-color: #0f0f0f !important;
                     }
                 `;
                 (document.head || document.documentElement).appendChild(style);
             }
 
             injectStyles();
-            
-            // Re-inject if necessary (YouTube Music is an SPA)
+            // head의 직접 자식만 감시 — subtree 감시는 SPA에서 성능 부담이 큼
+            const target = document.head || document.documentElement;
             const observer = new MutationObserver(injectStyles);
-            observer.observe(document.documentElement, { childList: true, subtree: true });
+            observer.observe(target, { childList: true });
         })();
         """
     }
