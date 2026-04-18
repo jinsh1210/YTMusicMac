@@ -5,6 +5,9 @@
 
 set -e
 
+# 스크립트 위치와 무관하게 항상 프로젝트 루트에서 실행
+cd "$(dirname "$0")/.."
+
 APP_NAME="YTMusicMac"
 SCHEME="YTMusicMac"
 CONFIGURATION="Release"
