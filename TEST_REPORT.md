@@ -6,7 +6,7 @@
 
 ## 🇺🇸 English
 
-### [2026-04-17] - v0.1.16 Scrollbar UI & Signing Reliability
+### [2026-04-19] - v0.1.16 Scrollbar UI & Signing Reliability
 
 - **Scope**: Scrollbar CSS injection, CI Keychain bypass for Sparkle signing.
 - **Results**:
@@ -55,7 +55,7 @@
 
 ## 🇰🇷 한국어
 
-### [2026-04-17] - v0.1.16 스크롤바 UI 및 서명 안정성
+### [2026-04-19] - v0.1.16 스크롤바 UI 및 서명 안정성
 
 - **범위**: 스크롤바 CSS 주입, Sparkle 서명을 위한 CI 키체인 우회.
 - **결과**:
