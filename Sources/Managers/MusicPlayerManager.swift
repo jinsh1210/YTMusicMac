@@ -72,47 +72,58 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         webView.configuration.userContentController.add(handler, name: "playbackChanged")
 
         let ucc = webView.configuration.userContentController
-        ucc.addUserScript(WKUserScript(source: scrollbarStyleScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        ucc.addUserScript(WKUserScript(source: scrollbarStyleScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         ucc.addUserScript(WKUserScript(source: playerObserverScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
     }
 
     private var scrollbarStyleScript: String {
         """
         (function() {
-            if (window.location.hostname !== 'music.youtube.com') return;
-            const style = document.createElement('style');
-            style.textContent = `
-                html, body {
-                    background-color: #0f0f0f !important;
-                }
-                ::-webkit-scrollbar {
-                    width: 10px !important;
-                    height: 10px !important;
-                    background-color: #0f0f0f !important;
-                }
-                ::-webkit-scrollbar-track {
-                    background: #0f0f0f !important;
-                }
-                ::-webkit-scrollbar-thumb {
-                    background: #333 !important;
-                    border-radius: 5px !important;
-                    border: 2px solid transparent !important;
-                    background-clip: content-box !important;
-                }
-                ::-webkit-scrollbar-thumb:hover {
-                    background: #555 !important;
-                    background-clip: content-box !important;
-                }
-                ::-webkit-scrollbar-corner {
-                    background-color: transparent !important;
-                }
-                body::-webkit-scrollbar,
-                ytmusic-app::-webkit-scrollbar,
-                #contents::-webkit-scrollbar {
-                    background-color: transparent !important;
-                }
-            `;
-            document.head.appendChild(style);
+            function injectStyles() {
+                if (document.getElementById('ytmusic-scrollbar-style')) return;
+                const style = document.createElement('style');
+                style.id = 'ytmusic-scrollbar-style';
+                style.textContent = `
+                    html, body, ytmusic-app {
+                        background-color: #000000 !important;
+                    }
+                    /* For the main scrollbar */
+                    ::-webkit-scrollbar {
+                        width: 10px !important;
+                        height: 10px !important;
+                        background-color: #000000 !important;
+                    }
+                    ::-webkit-scrollbar-track {
+                        background: #000000 !important;
+                    }
+                    ::-webkit-scrollbar-thumb {
+                        background: #333333 !important;
+                        border-radius: 5px !important;
+                        border: 2px solid #000000 !important;
+                    }
+                    ::-webkit-scrollbar-thumb:hover {
+                        background: #555555 !important;
+                    }
+                    ::-webkit-scrollbar-corner {
+                        background-color: #000000 !important;
+                    }
+                    
+                    /* Hide white backgrounds in specific YT Music components */
+                    tp-yt-paper-listbox, 
+                    tp-yt-paper-item,
+                    #contents.ytmusic-section-list-renderer,
+                    #items.ytmusic-grid-renderer {
+                        background-color: transparent !important;
+                    }
+                `;
+                (document.head || document.documentElement).appendChild(style);
+            }
+
+            injectStyles();
+            
+            // Re-inject if necessary (YouTube Music is an SPA)
+            const observer = new MutationObserver(injectStyles);
+            observer.observe(document.documentElement, { childList: true, subtree: true });
         })();
         """
     }

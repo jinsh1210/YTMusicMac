@@ -6,6 +6,11 @@
 
 ## 🇺🇸 English
 
+### [0.1.23] - 2026-04-19
+
+#### Fixed
+- **Scrollbar UI**: Improved CSS injection timing and robustness using MutationObserver to ensure the scrollbar background remains dark across all YouTube Music pages.
+
 ### [0.1.22] - 2026-04-19
 
 #### Changed
@@ -37,6 +42,11 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.1.23] - 2026-04-19
+
+#### 수정된 기능
+- **스크롤바 UI**: MutationObserver를 사용하여 모든 페이지에서 스크롤바 배경이 다크 모드로 유지되도록 CSS 주입 로직을 개선했습니다.
 
 ### [0.1.22] - 2026-04-19
 
