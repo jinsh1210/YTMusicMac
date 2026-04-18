@@ -6,6 +6,11 @@
 
 ## 🇺🇸 English
 
+### [0.1.17] - 2026-04-19
+
+#### Fixed
+- **Sparkle Signing Fix**: Re-released with correct EdDSA signatures for improved auto-update reliability.
+
 ### [0.1.16] - 2026-04-19
 
 #### Fixed
@@ -27,6 +32,11 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.1.17] - 2026-04-19
+
+#### 수정된 기능
+- **Sparkle 서명 수정**: 자동 업데이트 안정성을 위해 EdDSA 서명을 다시 생성하여 재배포했습니다.
 
 ### [0.1.16] - 2026-04-19
 
