@@ -54,8 +54,12 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         webView.uiDelegate = self
         webView.customUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15"
 
-        // 배경을 투명하게 설정하여 스크롤바 배경색 누수 방지
+        // Private KVC fallback (legacy)
         webView.setValue(false, forKey: "drawsBackground")
+        // Public API (macOS 12+): 오버스크롤 영역 배경색 제거
+        if #available(macOS 12.0, *) {
+            webView.underPageBackgroundColor = .clear
+        }
     }
 
     private func loadInitialURL() {
@@ -67,26 +71,27 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         webView.configuration.userContentController.add(handler, name: "trackChanged")
         webView.configuration.userContentController.add(handler, name: "playbackChanged")
 
-        let script = WKUserScript(source: scrollbarAndPlayerScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true)
-        webView.configuration.userContentController.addUserScript(script)
+        let ucc = webView.configuration.userContentController
+        ucc.addUserScript(WKUserScript(source: scrollbarStyleScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
+        ucc.addUserScript(WKUserScript(source: playerObserverScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
     }
 
-    private var scrollbarAndPlayerScript: String {
+    private var scrollbarStyleScript: String {
         """
         (function() {
             if (window.location.hostname !== 'music.youtube.com') return;
-
-            // 스크롤바 배경이 하얗게 뜨는 문제 수정을 위한 CSS 주입
             const style = document.createElement('style');
             style.textContent = `
-                /* 전체 스크롤바 스타일링: 다크 모드 최적화 */
+                html, body {
+                    background-color: #0f0f0f !important;
+                }
                 ::-webkit-scrollbar {
                     width: 10px !important;
                     height: 10px !important;
-                    background-color: transparent !important;
+                    background-color: #0f0f0f !important;
                 }
                 ::-webkit-scrollbar-track {
-                    background: transparent !important;
+                    background: #0f0f0f !important;
                 }
                 ::-webkit-scrollbar-thumb {
                     background: #333 !important;
@@ -101,7 +106,6 @@ final class MusicPlayerManager: NSObject, ObservableObject {
                 ::-webkit-scrollbar-corner {
                     background-color: transparent !important;
                 }
-                /* YouTube Music 특유의 스크롤바 덮어쓰기 */
                 body::-webkit-scrollbar,
                 ytmusic-app::-webkit-scrollbar,
                 #contents::-webkit-scrollbar {
@@ -109,7 +113,14 @@ final class MusicPlayerManager: NSObject, ObservableObject {
                 }
             `;
             document.head.appendChild(style);
+        })();
+        """
+    }
 
+    private var playerObserverScript: String {
+        """
+        (function() {
+            if (window.location.hostname !== 'music.youtube.com') return;
             function observePlayer() {
                 const playerBar = document.querySelector('ytmusic-player-bar');
                 if (!playerBar) {
