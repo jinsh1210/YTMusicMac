@@ -26,7 +26,8 @@
 		<true/>
 	</dict>
 	<key>SUFeedURL</key>
-	<string>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/appcast.xml</string>
+	<string>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/gh-pages/appcast.xml</string>
+
 	<key>SUPublicEDKey</key>
 	<string>HVC0+xVfJtRtTnL/9bV39P2XavqpZpueNZEjzyc85+g=</string>
 	<key>NSCameraUsageDescription</key>
