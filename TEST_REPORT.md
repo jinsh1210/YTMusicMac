@@ -6,6 +6,16 @@
 
 ## 🇺🇸 English
 
+### [2026-04-19] - v0.1.22 Security Setting Adjustment
+
+- **Scope**: Disabling Hardened Runtime for unsigned app updates.
+- **Results**:
+    - [PASS] Disabled Hardened Runtime in project.yml
+    - [PASS] Verified automated build and deployment pipeline
+- **Notes**: Adjusted security settings to potentially allow Sparkle updates to bypass strict macOS code signing requirements for unsigned applications.
+
+---
+
 ### [2026-04-19] - v0.1.17 Sparkle Signature Fix
 
 - **Scope**: Re-signing DMG with EdDSA private key.
@@ -64,6 +74,16 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [2026-04-19] - v0.1.22 보안 설정 조정
+
+- **범위**: 서명되지 않은 앱 업데이트를 위해 Hardened Runtime 비활성화.
+- **결과**:
+    - [PASS] project.yml에서 Hardened Runtime 비활성화 완료
+    - [PASS] 자동 빌드 및 배포 파이프라인 작동 확인
+- **특이사항**: 서명되지 않은 앱에서 macOS의 엄격한 코드 서명 요구 사항을 우회하여 Sparkle 업데이트가 가능하도록 보안 설정을 조정함.
+
+---
 
 ### [2026-04-19] - v0.1.17 Sparkle 서명 수정
 
