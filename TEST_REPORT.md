@@ -6,6 +6,20 @@
 
 ## 🇺🇸 English
 
+### [2026-04-26] - v0.2.0 Floating Player & Playback Enhancements
+
+- **Scope**: Floating Player UI, playback status tracking (time, shuffle, repeat), window coordination, settings view.
+- **Results**:
+    - [PASS] Floating Player toggle and always-on-top behavior
+    - [PASS] Playback time and duration tracking from WebView
+    - [PASS] Shuffle and Repeat mode status synchronization
+    - [PASS] Album art fetching with proper headers (User-Agent fix)
+    - [PASS] WindowCoordinator main/mini view switching
+    - [PASS] Settings view presentation
+- **Notes**: Tested on macOS 14.x. Mini player is highly responsive and album art loading is now stable.
+
+---
+
 ### [2026-04-19] - v0.1.25 Scrollbar & Release Script Optimization
 
 - **Scope**: Scrollbar CSS color refinement, MutationObserver performance, Release script UX.
@@ -105,6 +119,20 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [2026-04-26] - v0.2.0 플로팅 플레이어 및 재생 기능 강화
+
+- **범위**: 플로팅 플레이어 UI, 재생 상태 추적 (시간, 셔플, 반복), 윈도우 관리, 설정 뷰.
+- **결과**:
+    - [PASS] 플로팅 플레이어 토글 및 항상 위 기능 확인
+    - [PASS] WebView로부터 재생 시간 및 총 시간 추적 확인
+    - [PASS] 셔플 및 반복 모드 상태 동기화 확인
+    - [PASS] 헤더 추가를 통한 앨범 아트 로딩 안정성 확인
+    - [PASS] WindowCoordinator를 통한 메인/미니 뷰 전환 확인
+    - [PASS] 설정 뷰 정상 표시 확인
+- **특이사항**: macOS 14.x에서 테스트됨. 미니 플레이어의 응답성이 뛰어나며 앨범 아트 로딩이 안정화됨.
+
+---
 
 ### [2026-04-19] - v0.1.25 스크롤바 및 배포 스크립트 최적화
 

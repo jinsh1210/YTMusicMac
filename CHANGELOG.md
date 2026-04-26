@@ -6,6 +6,17 @@
 
 ## 🇺🇸 English
 
+### [0.2.0] - 2026-04-26
+
+#### Added
+- **Floating Player (Mini Player)**: Added a sleek, always-on-top mini player for quick control and album art display.
+- **Enhanced Playback Tracking**: Now tracks current time, duration, shuffle state, and repeat mode.
+- **Settings View**: New configuration panel for app-wide settings.
+- **Window Coordination**: Improved window management for switching between main and mini player views.
+
+#### Fixed
+- **Album Art Loading**: Improved reliability of album art fetching with proper User-Agent and Referer headers.
+
 ### [0.1.25] - 2026-04-19
 
 #### Fixed
@@ -55,6 +66,17 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.2.0] - 2026-04-26
+
+#### 추가된 기능
+- **플로팅 플레이어 (미니 플레이어)**: 앨범 아트 표시 및 간편 제어가 가능한 상단 고정형 미니 플레이어 추가.
+- **향상된 재생 상태 추적**: 현재 재생 시간, 총 시간, 셔플 상태 및 반복 모드 추적 기능 추가.
+- **설정 창**: 앱 설정을 위한 전용 설정 뷰 추가.
+- **윈도우 코디네이션**: 메인 윈도우와 미니 플레이어 간의 전환 및 관리 로직 개선.
+
+#### 수정된 기능
+- **앨범 아트 로딩**: User-Agent 및 Referer 헤더 추가를 통해 앨범 아트 이미지 로딩 안정성 개선.
 
 ### [0.1.25] - 2026-04-19
 
