@@ -6,6 +6,11 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     @Published var currentTrack: Track?
     @Published var isPlaying = false
     @Published var isLoading = true
+    @Published var currentTime: Double = 0
+    @Published var duration: Double = 0
+    @Published var albumArtImage: NSImage?
+    @Published var isShuffled = false
+    @Published var repeatMode: RepeatMode = .off
 
     let webView: WKWebView
     private var isAuthenticating = false
@@ -41,6 +46,9 @@ final class MusicPlayerManager: NSObject, ObservableObject {
             let ucc = webView.configuration.userContentController
             ucc.removeScriptMessageHandler(forName: "trackChanged")
             ucc.removeScriptMessageHandler(forName: "playbackChanged")
+            ucc.removeScriptMessageHandler(forName: "progressChanged")
+            ucc.removeScriptMessageHandler(forName: "shuffleChanged")
+            ucc.removeScriptMessageHandler(forName: "repeatChanged")
             webView.navigationDelegate = nil
             webView.uiDelegate = nil
         }
@@ -68,86 +76,13 @@ final class MusicPlayerManager: NSObject, ObservableObject {
         let handler = WeakMessageHandler(self)
         webView.configuration.userContentController.add(handler, name: "trackChanged")
         webView.configuration.userContentController.add(handler, name: "playbackChanged")
+        webView.configuration.userContentController.add(handler, name: "progressChanged")
+        webView.configuration.userContentController.add(handler, name: "shuffleChanged")
+        webView.configuration.userContentController.add(handler, name: "repeatChanged")
 
         let ucc = webView.configuration.userContentController
-        ucc.addUserScript(WKUserScript(source: scrollbarStyleScript, injectionTime: .atDocumentStart, forMainFrameOnly: true))
-        ucc.addUserScript(WKUserScript(source: playerObserverScript, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
-    }
-
-    private var scrollbarStyleScript: String {
-        """
-        (function() {
-            function injectStyles() {
-                if (document.getElementById('ytmusic-scrollbar-style')) return;
-                const style = document.createElement('style');
-                style.id = 'ytmusic-scrollbar-style';
-                style.textContent = `
-                    html {
-                        color-scheme: dark !important;
-                        background-color: #0f0f0f !important;
-                    }
-                    ::-webkit-scrollbar {
-                        width: 10px !important;
-                        height: 10px !important;
-                        background-color: #0f0f0f !important;
-                    }
-                    ::-webkit-scrollbar-track {
-                        background: #0f0f0f !important;
-                    }
-                    ::-webkit-scrollbar-thumb {
-                        background: #333 !important;
-                        border-radius: 5px !important;
-                        border: 2px solid #0f0f0f !important;
-                    }
-                    ::-webkit-scrollbar-thumb:hover {
-                        background: #555 !important;
-                    }
-                    ::-webkit-scrollbar-corner {
-                        background-color: #0f0f0f !important;
-                    }
-                `;
-                (document.head || document.documentElement).appendChild(style);
-            }
-
-            injectStyles();
-            // head의 직접 자식만 감시 — subtree 감시는 SPA에서 성능 부담이 큼
-            const target = document.head || document.documentElement;
-            const observer = new MutationObserver(injectStyles);
-            observer.observe(target, { childList: true });
-        })();
-        """
-    }
-
-    private var playerObserverScript: String {
-        """
-        (function() {
-            if (window.location.hostname !== 'music.youtube.com') return;
-            function observePlayer() {
-                const playerBar = document.querySelector('ytmusic-player-bar');
-                if (!playerBar) {
-                    setTimeout(observePlayer, 1000);
-                    return;
-                }
-                function updateStatus() {
-                    try {
-                        const title = document.querySelector('.title.style-scope.ytmusic-player-bar')?.innerText || "";
-                        const artist = document.querySelector('.byline.style-scope.ytmusic-player-bar')?.innerText || "";
-                        const art = document.querySelector('#layout > ytmusic-player-bar > div.middle-controls.style-scope.ytmusic-player-bar > img')?.src || "";
-                        const playBtnLabel = document.querySelector('#play-pause-button')?.getAttribute('aria-label') ?? '';
-                        const isPlaying = playBtnLabel === '일시중지' || playBtnLabel === 'Pause';
-                        window.webkit.messageHandlers.trackChanged.postMessage({title, artist, art});
-                        window.webkit.messageHandlers.playbackChanged.postMessage(isPlaying);
-                    } catch(e) {}
-                }
-                let _t;
-                const observer = new MutationObserver(() => { clearTimeout(_t); _t = setTimeout(updateStatus, 100); });
-                observer.observe(playerBar, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-label', 'src'] });
-                window.addEventListener('pagehide', () => { observer.disconnect(); clearTimeout(_t); }, { once: true });
-                updateStatus();
-            }
-            observePlayer();
-        })();
-        """
+        ucc.addUserScript(WKUserScript(source: PlayerScripts.scrollbarStyle, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        ucc.addUserScript(WKUserScript(source: PlayerScripts.playerObserver, injectionTime: .atDocumentEnd, forMainFrameOnly: true))
     }
 
     private func setupContentRules() async {
@@ -186,12 +121,68 @@ final class MusicPlayerManager: NSObject, ObservableObject {
     }
 
     func handleMessage(_ message: WKScriptMessage) {
-        if message.name == "trackChanged", let dict = message.body as? [String: String] {
-            let newTrack = Track(title: dict["title"] ?? "", artist: dict["artist"] ?? "", albumArt: URL(string: dict["art"] ?? ""))
-            if currentTrack != newTrack { currentTrack = newTrack }
-        } else if message.name == "playbackChanged", let playing = message.body as? Bool {
-            isPlaying = playing
+        switch message.name {
+        case "trackChanged": handleTrackChanged(message.body)
+        case "playbackChanged": handlePlaybackChanged(message.body)
+        case "progressChanged": handleProgressChanged(message.body)
+        case "shuffleChanged": handleShuffleChanged(message.body)
+        case "repeatChanged": handleRepeatChanged(message.body)
+        default: break
         }
+    }
+
+    private func handleTrackChanged(_ body: Any) {
+        guard let dict = body as? [String: String] else { return }
+        let newTrack = Track(title: dict["title"] ?? "", artist: dict["artist"] ?? "", albumArt: URL(string: dict["art"] ?? ""))
+        if currentTrack != newTrack {
+            currentTrack = newTrack
+            loadAlbumArt(url: newTrack.albumArt)
+        }
+    }
+
+    private func handlePlaybackChanged(_ body: Any) {
+        guard let playing = body as? Bool else { return }
+        isPlaying = playing
+    }
+
+    private func handleProgressChanged(_ body: Any) {
+        guard let dict = body as? [String: Any] else { return }
+        if let time = dict["currentTime"] as? Double { currentTime = time }
+        if let dur = dict["duration"] as? Double { duration = dur }
+    }
+
+    private func handleShuffleChanged(_ body: Any) {
+        guard let active = body as? Bool else { return }
+        isShuffled = active
+    }
+
+    private func handleRepeatChanged(_ body: Any) {
+        guard let raw = body as? String else { return }
+        switch raw {
+        case "one": repeatMode = .one
+        case "all": repeatMode = .all
+        default: repeatMode = .off
+        }
+    }
+
+    private func loadAlbumArt(url: URL?) {
+        guard let url else { albumArtImage = nil; return }
+        Task.detached(priority: .userInitiated) {
+            var request = URLRequest(url: url, cachePolicy: .returnCacheDataElseLoad, timeoutInterval: 10)
+            // lh3.googleusercontent.com CDN — User-Agent 없으면 403
+            request.setValue(
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Safari/605.1.15",
+                forHTTPHeaderField: "User-Agent"
+            )
+            request.setValue("https://music.youtube.com", forHTTPHeaderField: "Referer")
+            guard let (data, _) = try? await URLSession.shared.data(for: request),
+                  let image = NSImage(data: data) else { return }
+            await MainActor.run { self.albumArtImage = image }
+        }
+    }
+
+    func seek(to time: Double) {
+        executeJavaScript("document.querySelector('video').currentTime = \(time)")
     }
 
     func togglePlay() {
@@ -204,6 +195,34 @@ final class MusicPlayerManager: NSObject, ObservableObject {
 
     func previousTrack() {
         executeJavaScript("document.querySelector('.previous-button').click()")
+    }
+
+    func toggleShuffle() {
+        executeJavaScript("""
+        (function() {
+            const bar = document.querySelector('ytmusic-player-bar');
+            if (!bar) return;
+            const btn = Array.from(bar.querySelectorAll('button')).find(b =>
+                (b.getAttribute('aria-label') || '').includes('셔플') ||
+                (b.getAttribute('aria-label') || '').toLowerCase().includes('shuffle')
+            );
+            if (btn) btn.click();
+        })();
+        """)
+    }
+
+    func cycleRepeat() {
+        executeJavaScript("""
+        (function() {
+            const bar = document.querySelector('ytmusic-player-bar');
+            if (!bar) return;
+            const btn = Array.from(bar.querySelectorAll('button')).find(b =>
+                (b.getAttribute('aria-label') || '').includes('반복') ||
+                (b.getAttribute('aria-label') || '').toLowerCase().includes('repeat')
+            );
+            if (btn) btn.click();
+        })();
+        """)
     }
 
     private func executeJavaScript(_ script: String) {
@@ -241,46 +260,37 @@ extension MusicPlayerManager: WKNavigationDelegate {
         isLoading = false
     }
 
-    /// WKWebpagePreferences를 포함하는 최신 델리게이트 메서드로 교체하여 데스크탑 모드 강제
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, preferences: WKWebpagePreferences, decisionHandler: @escaping (WKNavigationActionPolicy, WKWebpagePreferences) -> Void) {
-        guard let url = navigationAction.request.url else {
-            decisionHandler(.allow, preferences)
-            return
-        }
-
-        // 매 이동마다 데스크탑 모드 강제 적용
         preferences.preferredContentMode = .desktop
-
-        guard let targetFrame = navigationAction.targetFrame, targetFrame.isMainFrame else {
+        guard let url = navigationAction.request.url,
+              let targetFrame = navigationAction.targetFrame,
+              targetFrame.isMainFrame
+        else {
             decisionHandler(.allow, preferences)
             return
         }
+        let policy = navigationPolicy(for: url, webView: webView)
+        decisionHandler(policy, preferences)
+    }
 
+    private func navigationPolicy(for url: URL, webView: WKWebView) -> WKNavigationActionPolicy {
         let host = url.host ?? ""
         if host.hasSuffix(".google.com") || host == "google.com" || host == "accounts.youtube.com" {
             isAuthenticating = true
-            decisionHandler(.allow, preferences)
-            return
+            return .allow
         }
-
         if host == "music.youtube.com" {
             isAuthenticating = false
-            decisionHandler(.allow, preferences)
-            return
+            return .allow
         }
-
         let youtubeHosts = ["www.youtube.com", "youtube.com", "m.youtube.com"]
-        if youtubeHosts.contains(host) {
-            if isAuthenticating || url.path == "/" || url.path == "" {
-                isAuthenticating = false
-                isLoading = true
-                decisionHandler(.cancel, preferences)
-                webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
-                return
-            }
+        if youtubeHosts.contains(host), isAuthenticating || url.path == "/" || url.path == "" {
+            isAuthenticating = false
+            isLoading = true
+            webView.load(URLRequest(url: URL(string: "https://music.youtube.com")!))
+            return .cancel
         }
-
-        decisionHandler(.allow, preferences)
+        return .allow
     }
 }
 
@@ -295,4 +305,8 @@ struct Track: Equatable {
     let title: String
     let artist: String
     let albumArt: URL?
+}
+
+enum RepeatMode {
+    case off, all, one
 }

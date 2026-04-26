@@ -3,12 +3,15 @@ import SwiftUI
 
 @main
 struct YTMusicMacApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var playerManager: MusicPlayerManager
+    @StateObject private var windowCoordinator: WindowCoordinator
     private let updater: SPUUpdater
 
     init() {
         let manager = MusicPlayerManager()
         _playerManager = StateObject(wrappedValue: manager)
+        _windowCoordinator = StateObject(wrappedValue: WindowCoordinator(manager: manager))
 
         let hostBundle = Bundle.main
         let applicationBundle = hostBundle
@@ -22,6 +25,10 @@ struct YTMusicMacApp: App {
         WindowGroup {
             ContentView(manager: playerManager)
                 .frame(minWidth: 1050, minHeight: 750)
+                .environmentObject(windowCoordinator)
+                .onAppear {
+                    appDelegate.windowCoordinator = windowCoordinator
+                }
         }
         .commands {
             CommandGroup(after: .appInfo) {
@@ -29,6 +36,10 @@ struct YTMusicMacApp: App {
                     updater.checkForUpdates()
                 }
             }
+        }
+
+        Settings {
+            SettingsView()
         }
     }
 }
