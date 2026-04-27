@@ -6,6 +6,14 @@
 
 ## 🇺🇸 English
 
+### [0.2.1] - 2026-04-27
+
+#### Changed
+- **Update Checker**: Replaced Sparkle with a lightweight GitHub Releases-based update checker. Clicking "Check for Updates" now opens the GitHub release page when a new version is available, or shows a notification if already up to date.
+
+#### Removed
+- **Sparkle**: Removed Sparkle auto-update framework dependency.
+
 ### [0.2.0] - 2026-04-26
 
 #### Added
@@ -66,6 +74,14 @@
 ---
 
 ## 🇰🇷 한국어
+
+### [0.2.1] - 2026-04-27
+
+#### 변경된 기능
+- **업데이트 확인**: Sparkle을 제거하고 GitHub Releases API 기반의 경량 업데이트 체커로 교체. "업데이트 확인..." 클릭 시 새 버전이 있으면 GitHub 릴리즈 페이지로 이동하고, 최신 버전이면 안내 알림을 표시.
+
+#### 제거된 기능
+- **Sparkle**: Sparkle 자동 업데이트 프레임워크 의존성 제거.
 
 ### [0.2.0] - 2026-04-26
 
