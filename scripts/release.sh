@@ -1,11 +1,10 @@
 #!/bin/bash
 
 # YTMusicMac Release Script
-# Automates: [xcodegen] -> xcodebuild -> hdiutil (.dmg)
+# Automates: [xcodegen] -> xcodebuild -> hdiutil (.dmg) -> git tag -> gh release upload
 
 set -e
 
-# 스크립트 위치와 무관하게 항상 프로젝트 루트에서 실행
 cd "$(dirname "$0")/.."
 
 APP_NAME="YTMusicMac"
@@ -16,7 +15,10 @@ APP_PATH="${BUILD_DIR}/Build/Products/${CONFIGURATION}/${APP_NAME}.app"
 DMG_NAME="${APP_NAME}.dmg"
 STAGING_DIR="/tmp/${APP_NAME}-dmg-staging"
 
-# Step 1: XcodeGen (installed 경우에만 실행)
+VERSION=$(grep 'MARKETING_VERSION:' project.yml | awk '{print $2}')
+TAG="v${VERSION}"
+
+# Step 1: XcodeGen
 if command -v xcodegen &> /dev/null; then
     echo "Step 1: Generating project with XcodeGen..."
     xcodegen generate
@@ -25,7 +27,7 @@ else
 fi
 
 # Step 2: Build
-echo "Step 2: Building the app..."
+echo "Step 2: Building ${VERSION}..."
 xcodebuild -project "${APP_NAME}.xcodeproj" \
            -scheme "${SCHEME}" \
            -configuration "${CONFIGURATION}" \
@@ -37,7 +39,7 @@ if [ ! -d "${APP_PATH}" ]; then
     exit 1
 fi
 
-# Step 3: DMG 생성 (Applications 심볼릭 링크 포함)
+# Step 3: DMG 생성
 echo "Step 3: Creating DMG..."
 rm -rf "${STAGING_DIR}"
 mkdir -p "${STAGING_DIR}"
@@ -53,4 +55,32 @@ hdiutil create -volname "${APP_NAME}" \
 
 rm -rf "${STAGING_DIR}"
 
-echo "Done! ${DMG_NAME} created."
+echo "DMG created: ${DMG_NAME}"
+
+# Step 4: Git tag
+echo "Step 4: Tagging ${TAG}..."
+if git rev-parse "${TAG}" >/dev/null 2>&1; then
+    echo "Tag ${TAG} already exists — skipping tag creation."
+else
+    git tag "${TAG}"
+    git push origin "${TAG}"
+    echo "Pushed tag ${TAG}."
+fi
+
+# Step 5: GitHub Release 업로드
+echo "Step 5: Uploading to GitHub Release..."
+if ! command -v gh &> /dev/null; then
+    echo "Error: gh CLI not installed. Run: brew install gh"
+    exit 1
+fi
+
+if gh release view "${TAG}" >/dev/null 2>&1; then
+    echo "Release ${TAG} already exists — uploading DMG..."
+    gh release upload "${TAG}" "${DMG_NAME}" --clobber
+else
+    gh release create "${TAG}" "${DMG_NAME}" \
+        --title "${TAG}" \
+        --notes "Release ${TAG}"
+fi
+
+echo "Done! ${TAG} released."

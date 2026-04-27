@@ -2,126 +2,27 @@ name: Release
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'
 
 permissions:
   contents: write
 
 jobs:
   release:
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Check version
-        id: check_tag
-        run: |
-          VERSION=$(grep 'MARKETING_VERSION:' project.yml | awk '{print $2}')
-          TAG="v$VERSION"
-          git fetch --tags
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Set Xcode Version
-        if: steps.check_tag.outputs.exists == 'false'
-        run: sudo xcode-select -s /Applications/Xcode.app
-
-      - name: Build App
-        if: steps.check_tag.outputs.exists == 'false'
-        run: |
-          brew install xcodegen
-          xcodegen generate
-          xcodebuild -project YTMusicMac.xcodeproj \
-                     -scheme YTMusicMac \
-                     -configuration Release \
-                     -derivedDataPath build \
-                     CODE_SIGNING_ALLOWED=NO \
-                     CODE_SIGN_REQUIRED=NO \
-                     CODE_SIGN_IDENTITY="" \
-                     clean build
-
-      - name: Create DMG
-        if: steps.check_tag.outputs.exists == 'false'
-        run: |
-          brew install create-dmg
-          APP_PATH="build/Build/Products/Release/YTMusicMac.app"
-          mkdir -p dmg_root
-          cp -R "$APP_PATH" dmg_root/
-          create-dmg \
-            --volname "YTMusicMac" \
-            --window-pos 200 120 \
-            --window-size 600 400 \
-            --icon-size 100 \
-            --icon "YTMusicMac.app" 175 120 \
-            --hide-extension "YTMusicMac.app" \
-            --app-drop-link 425 120 \
-            "YTMusicMac.dmg" \
-            "dmg_root/"
-
-      - name: Sign and Update Appcast
-        if: steps.check_tag.outputs.exists == 'false'
-        env:
-          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
-        run: |
-          TAG="${{ steps.check_tag.outputs.tag }}"
-          VERSION="${{ steps.check_tag.outputs.version }}"
-          BUILD_NUM=$(grep 'CURRENT_PROJECT_VERSION:' project.yml | awk '{print $2}')
-
-          # Sparkle Tooling
-          curl -L "https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-2.9.1.tar.xz" -o sparkle.tar.xz
-          mkdir -p sparkle_bin
-          tar -xf sparkle.tar.xz -C sparkle_bin
-          SIGN_UPDATE=$(find sparkle_bin -name sign_update -type f | head -1)
-          
-          # Sign DMG
-          echo "$SPARKLE_PRIVATE_KEY" > key.txt
-          SIGN_INFO=$("$SIGN_UPDATE" --ed-key-file key.txt YTMusicMac.dmg)
-          rm key.txt
-
-          ED_SIG=$(echo "$SIGN_INFO" | sed 's/.*sparkle:edSignature="\([^"]*\)".*/\1/')
-          FILE_SIZE=$(echo "$SIGN_INFO" | sed 's/.*length="\([^"]*\)".*/\1/')
-          PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
-
-          # Update gh-pages branch
-          git config user.email "github-actions@github.com"
-          git config user.name "GitHub Actions"
-          git fetch origin gh-pages
-          git checkout gh-pages
-          
-          # XML Item Assembly (Safest way without complex shell variables)
-          {
-            printf "        <item>\n"
-            printf "            <title>Version %s</title>\n" "$VERSION"
-            printf "            <sparkle:releaseNotesLink>https://raw.githubusercontent.com/jinsh1210/YTMusicMac/main/CHANGELOG.md</sparkle:releaseNotesLink>\n"
-            printf "            <pubDate>%s</pubDate>\n" "$PUB_DATE"
-            printf "            <enclosure url=\"https://github.com/jinsh1210/YTMusicMac/releases/download/%s/YTMusicMac.dmg\" sparkle:version=\"%s\" sparkle:shortVersionString=\"%s\" sparkle:edSignature=\"%s\" length=\"%s\" type=\"application/octet-stream\" />\n" "$TAG" "$BUILD_NUM" "$VERSION" "$ED_SIG" "$FILE_SIZE"
-            printf "        </item>\n"
-          } > new_item.xml
-
-          # Insert new item after <channel> using standard sed (portable)
-          sed -i.bak '/<channel>/r new_item.xml' appcast.xml
-          rm appcast.xml.bak new_item.xml
-
-          git add appcast.xml
-          git commit -m "chore: update appcast for ${TAG}"
-          git push origin gh-pages
-
-      - name: Create Release
-        if: steps.check_tag.outputs.exists == 'false'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.check_tag.outputs.tag }}
-          name: ${{ steps.check_tag.outputs.tag }}
-          files: YTMusicMac.dmg
-          body: "Automated release for ${{ steps.check_tag.outputs.tag }}"
+      - name: Check release exists
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            echo "Release $TAG already exists (created by local script). Nothing to do."
+          else
+            echo "Release $TAG not found — creating placeholder release."
+            gh release create "$TAG" \
+              --repo "${{ github.repository }}" \
+              --title "$TAG" \
+              --notes "Release $TAG"
+          fi
